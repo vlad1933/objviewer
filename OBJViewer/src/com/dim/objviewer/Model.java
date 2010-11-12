@@ -13,6 +13,12 @@ import javax.media.opengl.GL;
 
 import com.sun.opengl.util.BufferUtil;
 
+
+/*
+ * Second Revision!
+ * */
+
+
 public class Model {
 	// Buffer for the vertex array
 	private DoubleBuffer vertexBuffer;
@@ -29,27 +35,7 @@ public class Model {
 	private ArrayList<Vert3> vertexList = new ArrayList<Vert3>();
 	private ArrayList<Vert3> normalList = new ArrayList<Vert3>();
 	private ArrayList<Face3> faceList = new ArrayList<Face3>();
-	/*private double[][] vertexList = { 
-//			{ 1.0, 1.0, 1.0 }, { 1.0, 1.0, -1.0 },
-//			{ 1.0, -1.0, 1.0 }, { 1.0, -1.0, -1.0 }, 
-//			{ -1.0, 1.0, 1.0 }, { -1.0, 1.0, -1.0 }, 
-//			{ -1.0, -1.0, 1.0 },{ -1.0, -1.0, -1.0 }};
-	
-	// Array of normals to the vertices building the house
-//	private double[][] normalList = { 
-//			{ 0.0, 0.0, 1.0 }, { 0.0, 0.0, 1.0 },{ 0.0, 0.0, 1.0 }, { 0.0, 0.0, 1.0 },{ 0.0, 0.0, 1.0 },
-//			{ 0.0, 0.0, 1.0 }, { 0.0, 0.0, 1.0 }, { 0.0, 0.0, 1.0 } };
-	// Array containing the indices of the faces of the house
-	
-	//private int[][] faceList = { { 0, 2, 3, 1 }, { 4,6,7,5 }, { 0,4,5,1 },{ 2,6,7,3 }, { 1,4,6,2 }, { 0,5,7,3 } };
-//	private int[][] faceList = { 
-//			{1,3,2}, {3,4,1}, 	//rechts
-//			{3,2,5}, {7,3,5},	//vorn
-//			{5,2,6}, {6,2,1},	//oben
-//			{5,7,8}, {5,8,6},	//links
-//			{4,6,8}, {4,1,6},	//hinten
-//			{7,3,8}, {3,4,8},	//unten
-//			};*/
+
 	
 	private double[][] texcoordList = {};
 
