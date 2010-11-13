@@ -233,7 +233,7 @@ public class Model {
         System.out.println("Error loading model");
         System.exit(1);
       }
-            
+      System.out.println("file read");      
     }
   
   private void extractVert(String line){
@@ -279,11 +279,12 @@ private void extractFace(String line){
     blank_tokens.nextToken();    // skip the OBJ word
 
     try {
-      String face_line = blank_tokens.nextToken();
-      int[] a = cutSlash(face_line);  
-//      int y = Integer.parseInt(blank_tokens.nextToken());
-//      int z = Integer.parseInt(blank_tokens.nextToken());
+      
+      int[] a = cutSlash(blank_tokens.nextToken());  
+      int[] b = cutSlash(blank_tokens.nextToken());
+      int[] c = cutSlash(blank_tokens.nextToken());
 
+      Face3 face = new Face3(a, b, c);
       //faceList.add(new Face3(x,y,z));
 
     }
@@ -298,7 +299,12 @@ private int[] cutSlash(String str){
 	
 	token_arr[0] = Integer.parseInt(slash_tokens.nextToken());
 	token_arr[1] = Integer.parseInt(slash_tokens.nextToken());
-	token_arr[2] = Integer.parseInt(slash_tokens.nextToken());
+	if(slash_tokens.hasMoreTokens()){
+		token_arr[2] = Integer.parseInt(slash_tokens.nextToken());
+	}else{
+		token_arr[2] = token_arr[1];
+		token_arr[1] = -1;
+	}
 	
 	return token_arr;
 }
