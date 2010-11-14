@@ -3,14 +3,23 @@ package com.dim.objviewer;
 public class Face3 {
 private int[] a,b,c;
 
-	/*a/b/c consists of [0] The Vert which is part of the Face
-	 * [1] The Texture 
-	 * [2] The Normal*/
+	/* a/b/c consists of 
+	 * [0] Index of Vertex which is part of the Face
+	 * [1] Index of the Texture 
+	 * [2] Index of the Normal*/
 	
 	public Face3(int[] a, int[] b,int[] c){
 		this.a = a;
 		this.b = b;
 		this.c = c;
+		
+		this.decrValuesByOne();
+	}
+	
+	private void decrValuesByOne(){
+		a[0]--;
+		b[0]--;
+		c[0]--;
 	}
 	
 	public int[] getFaceVerts(){
