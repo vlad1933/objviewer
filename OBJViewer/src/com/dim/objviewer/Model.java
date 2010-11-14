@@ -40,7 +40,7 @@ public class Model {
 	private double[][] texcoordList = {};
 
 	public Model(GL gl) {
-		loadModel("models/cube");
+		loadModel("models/bunny");
 		//decrFaceList();
 		buildArrays(gl);
 		//buildVBOS(gl);
@@ -83,19 +83,16 @@ public class Model {
 		normalBuffer = BufferUtil.newDoubleBuffer(normalList.size() * 3);
 		// Build the vertex and normal arrays
 		for (int i = 0; i < vertexList.size(); i++) {
-			vertexBuffer.put((vertexList.get(i)).getVert());
+			vertexBuffer.put((vertexList.get(i)).getVert());			
+		}
+		for(int i = 0; i < normalList.size(); i++){
 			normalBuffer.put(normalList.get(i).getVert());
 		}
 
 		// Allocate space for the index array
-		indices = BufferUtil.newIntBuffer(faceList.size() * 3);
-		// Build the index array
-//		for (int[] f : faceList) {
-//			indices.put(f);
-//		}
-		
+		indices = BufferUtil.newIntBuffer(faceList.size() * 3);		
 		for (int i = 0; i < faceList.size(); i++){
-			indices.put(faceList.get(i).getFace());
+			indices.put(faceList.get(i).getFaceVerts());
 		}
 
 		// Rewind all buffers
@@ -191,7 +188,7 @@ public class Model {
       int lineNum = 0;
       String line;
       boolean isFirstCoord = true;
-      boolean isFirstTC = true; //tex coord
+      boolean isFirstTC = true; //tex cord
       int numFaces = 0;
 
       try {
@@ -205,20 +202,19 @@ public class Model {
               if (isFirstCoord)
                 isFirstCoord = false;
             }
-            else if (line.startsWith("vt")) {   // tex coord
+            else if (line.startsWith("vt")) {   // tex cord
             	extractTexCord(line);
               if (isFirstTC)
                 isFirstTC = false;
             }
             else if (line.startsWith("vn"))    // normal
-                    extractNormal(line);
-                    //isLoaded = addNormal(line);
+                    extractNormal(line);                    
             else if (line.startsWith("f ")) {  // face
               extractFace(line);
               numFaces++;
             }            
             else if (line.startsWith("#"))   // comment line
-              continue;
+            	System.out.println("comment: " + line);            	
             else
               System.out.println("Ignoring line " + lineNum + " : " + line);
           }
@@ -233,8 +229,16 @@ public class Model {
         System.out.println("Error loading model");
         System.exit(1);
       }
+      
+      if(normalList.size() == 0)
+    	  computeNormals();
+      
       System.out.println("file read");      
     }
+  
+  private void computeNormals(){
+	  System.out.println("computing normals ... (haha)");
+  }
   
   private void extractVert(String line){
       StringTokenizer tokens = new StringTokenizer(line, " ");
@@ -285,7 +289,7 @@ private void extractFace(String line){
       int[] c = cutSlash(blank_tokens.nextToken());
 
       Face3 face = new Face3(a, b, c);
-      //faceList.add(new Face3(x,y,z));
+      faceList.add(face);
 
     }
     catch (NumberFormatException e)
@@ -297,8 +301,17 @@ private int[] cutSlash(String str){
 	
 	StringTokenizer slash_tokens = new StringTokenizer(str, "/") ;
 	
+	/*If faces are given as 3 Integer numbers without slashes*/
+	if(slash_tokens.countTokens() <= 1){
+		token_arr[0] = Integer.parseInt(str);		
+		return token_arr;
+	}
+		
+		
 	token_arr[0] = Integer.parseInt(slash_tokens.nextToken());
 	token_arr[1] = Integer.parseInt(slash_tokens.nextToken());
+	
+	/*If no texcoords are given -> // I assume the verts and the vertnormals are given -> v//vn*/
 	if(slash_tokens.hasMoreTokens()){
 		token_arr[2] = Integer.parseInt(slash_tokens.nextToken());
 	}else{
