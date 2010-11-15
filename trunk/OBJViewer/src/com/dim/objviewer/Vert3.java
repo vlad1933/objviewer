@@ -31,4 +31,6 @@ public class Vert3 {
 		this.b = b;
 		this.c = c;
 	}
+	
+
 }

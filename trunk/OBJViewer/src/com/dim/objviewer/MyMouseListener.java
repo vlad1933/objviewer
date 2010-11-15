@@ -52,9 +52,11 @@ class MyMouseMotionListener implements MouseMotionListener {
 	public void mouseDragged(MouseEvent e) {
 		int x = e.getX();
 		int y = e.getY();
-		rotData.viewRotY = 360.0 * (x - rotData.dragStartX) / 400;//getWidth();
-		rotData.viewRotX = 360.0 * (y - rotData.dragStartY) / 400;//getHeight();
-		GLCanvas can = (GLCanvas) e.getComponent();//canvas.display();
+		GLCanvas can = (GLCanvas) e.getComponent();
+		
+		rotData.viewRotY = 360.0 * (x - rotData.dragStartX) / can.getWidth();
+		rotData.viewRotX = 360.0 * (y - rotData.dragStartY) / can.getHeight();
+		
 		can.display();
 	}
 }

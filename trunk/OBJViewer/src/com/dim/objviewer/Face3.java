@@ -43,5 +43,21 @@ private int[] a,b,c;
 		else
 			return true;
 	}
+	
+	public Vert3 calcNormals(Vert3 v1, Vert3 v2){
+		
+		if(this.hasTexVert())
+			return new Vert3(a[1],b[1],c[1]);
+		
+		
+		Vert3 out = new Vert3(0,0,0);
+		
+//		out[x] = v1[y] * v2[z] - v1[z] * v2[y];
+//		out[y] = v1[z] * v2[x] - v1[x] * v2[z];
+//		out[z] = v1[x] * v2[y] - v1[y] * v2[x];
+		
+		return out;
+		                                    
+	}
 		
 }
