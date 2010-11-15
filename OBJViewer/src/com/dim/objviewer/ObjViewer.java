@@ -1,3 +1,10 @@
+/**
+ * Big 2Dos:
+ * 	keine wireframe
+ * skalieren können
+ * normalen berechnen
+ * initiale position nach drehung abfangen 
+ */
 package com.dim.objviewer;
 
 import java.awt.*;
@@ -17,8 +24,7 @@ public class ObjViewer extends JFrame implements GLEventListener {
 	// The house to display
 	private Model model;
 	private static GLCanvas canref;
-
-	private GLAutoDrawable drawable;
+	
 
 	public RotationData rotData = new RotationData(10.0f);
 
@@ -46,7 +52,7 @@ public class ObjViewer extends JFrame implements GLEventListener {
 	}
 
 	public void init(GLAutoDrawable drawable) {
-		this.drawable = drawable;
+		//this.drawable = drawable;
 		GL gl = drawable.getGL();
 
 		// Set background color
@@ -64,9 +70,7 @@ public class ObjViewer extends JFrame implements GLEventListener {
 		gl.glEnable(GL.GL_DEPTH_TEST);
 		// Enable color material
 		gl.glEnable(GL.GL_COLOR_MATERIAL);
-
 		
-
 		model = new Model(gl);
 
 	}
@@ -99,11 +103,14 @@ public class ObjViewer extends JFrame implements GLEventListener {
 		gl.glRotated(rotData.viewRotY, 0, 1, 0);
 
 		//Keyboard Interaction
-		if(rotData.rotmode)
+		if(rotData.rotmode){
 			gl.glRotatef(rotData.rotation, rotData.getAxis()[0], rotData.getAxis()[1], rotData.getAxis()[2]);
+			//gl.glRotatef(rotData.rotation, rotData.getAxis()[0], rotData.getAxis()[1], rotData.getAxis()[2]);
+		}
 				
+		
 		//glut.glutSolidTeapot(1);
-		gl.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_LINE);
+		//gl.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_LINE); WireFrame
 		model.draw(gl);
 		
 		System.out.print("\nin display");		
@@ -121,6 +128,7 @@ public class ObjViewer extends JFrame implements GLEventListener {
 	public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
 		GL gl = drawable.getGL();
 
+		
 		int size = width < height ? width : height;
 		int xbeg = width < height ? 0 : (width - height) / 2;
 		int ybeg = width < height ? (height - width) / 2 : 0;
