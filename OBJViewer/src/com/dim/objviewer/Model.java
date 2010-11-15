@@ -15,7 +15,7 @@ import com.sun.opengl.util.BufferUtil;
 
 
 /*
- * Second Revision!
+ * Third Revision!
  * */
 
 
@@ -40,22 +40,12 @@ public class Model {
 	private double[][] texcoordList = {};
 
 	public Model(GL gl) {
-		loadModel("models/bunny");
+		loadModel("models/cube");
 		//decrFaceList();
 		buildArrays(gl);
 		//buildVBOS(gl);
 	}
 
-	public void decrFaceList(){
-//		int cnt = faceList.length;
-//		int i = 0; int j = 0;
-//		for (i = 0; i < faceList.length; i++) {
-//			for(j = 0; j < 3; j++){				
-//				faceList[i][j] = faceList[i][j] -1;
-//				System.out.print("\n"+faceList[i][j]);
-//			}			
-//		}
-	}
 	/*
 	 * Draw the house.
 	 */
