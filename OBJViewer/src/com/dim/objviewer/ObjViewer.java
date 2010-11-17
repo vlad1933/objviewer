@@ -35,8 +35,7 @@ public class ObjViewer extends JFrame implements GLEventListener {
 		 * - init() - display() - displayChanged() - reshape() Therefore we
 		 * implement the GLEventListener interface
 		 */
-		GLCanvas canvas = new GLCanvas();
-		this.canref = canvas;
+		GLCanvas canvas = new GLCanvas();		
 		rotData = new RotationData(10.0f);
 		
 		canvas.addGLEventListener(this);
@@ -90,7 +89,7 @@ public class ObjViewer extends JFrame implements GLEventListener {
 		//gl.glClear(GL.GL_COLOR_BUFFER_BIT);		//Leert die im Parameter festgelegten Buffer, indem sie mit einen Leerwert gefüllt werden
 		gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 
-		gl.glMatrixMode(GL.GL_MODELVIEW);	//Legt fest, welche Matrix gerade aktiv ist
+		gl.glMatrixMode(GL.GL_PROJECTION);	//Legt fest, welche Matrix gerade aktiv ist
 		gl.glLoadIdentity();		//Die Funktion glLoadIdentity ersetzt die aktuelle Matrix durch die Identitätsmatrix - Multiplikation einer Matrix A mit einer Einheitsmatrix ergibt wieder die Matrix A
 		
 		gl.glColorMaterial(GL.GL_FRONT_AND_BACK, GL.GL_AMBIENT);
@@ -103,9 +102,14 @@ public class ObjViewer extends JFrame implements GLEventListener {
 		gl.glRotated(rotData.viewRotY, 0, 1, 0);
 
 		//Keyboard Interaction
-		if(rotData.rotmode){
-			gl.glRotatef(rotData.rotation, rotData.getAxis()[0], rotData.getAxis()[1], rotData.getAxis()[2]);
-			//gl.glRotatef(rotData.rotation, rotData.getAxis()[0], rotData.getAxis()[1], rotData.getAxis()[2]);
+//		if(rotData.rotmode){
+//			gl.glRotatef(rotData.rotation, rotData.getAxis()[0], rotData.getAxis()[1], rotData.getAxis()[2]);
+//			//gl.glRotatef(rotData.rotation, rotData.getAxis()[0], rotData.getAxis()[1], rotData.getAxis()[2]);
+//		}
+		if (rotData.rotmode) {
+			gl.glRotatef(rotData.rotx, 1.0f, 0.0f, 0.0f);
+			gl.glRotatef(rotData.roty, 0.0f, 1.0f, 0.0f);
+			gl.glRotatef(rotData.rotz, 0.0f, 0.0f, 1.0f);
 		}
 				
 		
@@ -118,12 +122,6 @@ public class ObjViewer extends JFrame implements GLEventListener {
 
 	}
 
-
-	public void foo() {
-		// GL gl = GLContext.getCurrent().getGL();
-		// System.out.print("key typed - space");
-		// System.out.print("\ngl instanz " + gl.toString());
-	}
 
 	public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
 		GL gl = drawable.getGL();

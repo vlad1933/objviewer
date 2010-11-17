@@ -6,6 +6,8 @@ public class RotationData {
 	public boolean rotmode = false;
 	public boolean turnLeft = false;
 	
+	public float roty, rotx, rotz;
+	
 	public char axis = '\0';
 	public int axArr[] = {0,0,0};
 	
@@ -15,6 +17,10 @@ public class RotationData {
 	
 	public RotationData(float speed){
 		this.ROTATION_SPEED = speed;
+		
+		roty = 0;
+		rotx = 0;
+		rotz = 0;
 	}
 	
 	public int[] getAxis(){
@@ -25,9 +31,11 @@ public class RotationData {
 		this.turnLeft = left;
 		
 		if (left) {
-			rotation += this.ROTATION_SPEED;
+			//rotation += this.ROTATION_SPEED;
+			rotx += this.ROTATION_SPEED;
 		} else {
-			rotation -= this.ROTATION_SPEED;
+			//rotation -= this.ROTATION_SPEED;
+			rotx -= this.ROTATION_SPEED;
 		}
 		
 		//Float-Overflow Abfangen!
@@ -35,18 +43,30 @@ public class RotationData {
 		switch (axis) {
 		case 'x':
 			//gl.glRotatef(rotation, 1, 0, 0);
-			axArr[0] = 1; axArr[1] = 0; axArr[2] = 0;
+			//axArr[0] = 1; axArr[1] = 0; axArr[2] = 0;
+			if(left) 
+				rotx += this.ROTATION_SPEED;
+			else
+				rotx -= this.ROTATION_SPEED;
 			break;
 		case 'y':
 			//gl.glRotatef(rotation, 0, 1, 0);
-			axArr[0] = 0; axArr[1] = 1; axArr[2] = 0;
+			//axArr[0] = 0; axArr[1] = 1; axArr[2] = 0;
+			if(left) 
+				roty += this.ROTATION_SPEED;
+			else
+				roty -= this.ROTATION_SPEED;
 			break;
 		case 'z':
 			//gl.glRotatef(rotation, 0, 0, 1);
-			axArr[0] = 0; axArr[1] = 0; axArr[2] = 1;
+			//axArr[0] = 0; axArr[1] = 0; axArr[2] = 1;
+			if(left) 
+				rotz += this.ROTATION_SPEED;
+			else
+				rotz -= this.ROTATION_SPEED;
 			break;
 		default:
-			axArr[0] = 0; axArr[1] = 0; axArr[2] = 0;
+			//axArr[0] = 0; axArr[1] = 0; axArr[2] = 0;
 			//gl.glRotatef(0, 0, 0, 0);
 			break;
 		}
