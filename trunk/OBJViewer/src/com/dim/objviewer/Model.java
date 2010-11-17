@@ -50,11 +50,19 @@ public class Model {
 		// Enable vertex arrays
 		gl.glEnableClientState(GL.GL_VERTEX_ARRAY);
 		gl.glEnableClientState(GL.GL_NORMAL_ARRAY);
-		gl.glDrawElements(GL.GL_TRIANGLES, faceList.size() * 3,
-				GL.GL_UNSIGNED_INT, indices);
+		gl.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY);
+		
+		
+		gl.glDrawElements(GL.GL_TRIANGLES, faceList.size() * 3, GL.GL_UNSIGNED_INT, indices);
+		
+		//unbind?!
+		//gl.glBindBuffer(GL.GL_ARRAY_BUFFER, 0);
+		//gl.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, 0);
+		
 		// Disable vertex arrays
 		gl.glDisableClientState(GL.GL_VERTEX_ARRAY);
 		gl.glDisableClientState(GL.GL_NORMAL_ARRAY);
+		gl.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY);
 	}
 
 	/*
@@ -146,6 +154,11 @@ public class Model {
 		// Load the Data
 		gl.glBufferData(GL.GL_ARRAY_BUFFER, texcoordList.size() * 3 * BufferUtil.SIZEOF_DOUBLE, texcoordBuffer, GL.GL_STATIC_DRAW);
 		
+		indices = BufferUtil.newIntBuffer(1);
+		gl.glGenBuffers(1, indices);
+		gl.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, indices.get(0));
+		gl.glBufferData(GL.GL_ELEMENT_ARRAY_BUFFER, faceList.size() * 3 * BufferUtil.SIZEOF_INT, indices, GL.GL_STATIC_DRAW);
+		
 
 		/* glVertexPointer specifies the location and data format of an array of vertex coordinates to use when rendering.
         size specifies the number of coordinates per vertex, and must be 2, 3, or 4.
@@ -155,12 +168,14 @@ public class Model {
 		gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBOVertices.get(0));
 		gl.glVertexPointer(3, GL.GL_DOUBLE, 0, 0);
 		
-
 		gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBOTexcoords.get(0));
 		gl.glTexCoordPointer(3, GL.GL_DOUBLE, 0, 0);
 
 		gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBONormals.get(0));
 		gl.glNormalPointer(GL.GL_DOUBLE, 0, 0);
+		
+		gl.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, indices.get(0));
+		
 	}
 
 	private void loadModel(String name) {

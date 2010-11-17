@@ -84,7 +84,7 @@ public class ObjViewer extends JFrame implements GLEventListener {
 		GLU glu = new GLU();
 		GLUT glut = new GLUT();
 		
-		System.out.print("\ngl instanz " + gl.toString());
+		//System.out.print("\ngl instanz " + gl.toString());
 
 		//gl.glClear(GL.GL_COLOR_BUFFER_BIT);		//Leert die im Parameter festgelegten Buffer, indem sie mit einen Leerwert gefüllt werden
 		gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
