@@ -52,8 +52,23 @@ public class Model {
 		gl.glEnableClientState(GL.GL_NORMAL_ARRAY);
 		gl.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY);
 		
+		gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBOVertices.get(0));
+		gl.glVertexPointer(3, GL.GL_DOUBLE, 0, 0);
 		
-		gl.glDrawElements(GL.GL_TRIANGLES, faceList.size() * 3, GL.GL_UNSIGNED_INT, indices);
+		gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBONormals.get(0));
+		gl.glNormalPointer(GL.GL_DOUBLE, 0, 0);
+		
+		gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBOTexcoords.get(0));
+		gl.glTexCoordPointer(3, GL.GL_DOUBLE, 0, 0);
+		
+		
+		//gl.glDrawRangeElements(GL.GL_TRIANGLES, 0, vertexList.size()-1, faceList.size() * 3, GL.GL_UNSIGNED_INT, 0);
+		//läuft nicht Fehler: java: vbo/vbo_exec_array.c:825: vbo_exec_DrawRangeElementsBaseVertex: Assertion `ctx->Array.ArrayObj->_MaxElement >= 1' failed.
+		
+		//gl.glDrawElements(GL.GL_TRIANGLES, faceList.size() * 3, GL.GL_UNSIGNED_INT, indices); //läuft nicht -> exception
+		
+		//gl.glDrawArrays(GL.GL_TRIANGLES, 0, vertexList.size()-1); -> man sieht nichts aber läuft
+		
 		
 		//unbind?!
 		//gl.glBindBuffer(GL.GL_ARRAY_BUFFER, 0);
