@@ -23,10 +23,16 @@ public class ObjViewer extends JFrame implements GLEventListener {
 
 	// The house to display
 	private Model model;
-	private static GLCanvas canref;
 	
 
-	public RotationData rotData = new RotationData(10.0f);
+	public RotationData rotData;	
+	public Shading shadingData;
+	
+	public float scaling = 1.0f;
+	public float o = 0.0f;
+	public float l = 0.0f;
+	
+
 
 	public ObjViewer() {
 		super("OpenGL JOGL VIEWER");
@@ -37,6 +43,7 @@ public class ObjViewer extends JFrame implements GLEventListener {
 		 */
 		GLCanvas canvas = new GLCanvas();		
 		rotData = new RotationData(10.0f);
+		shadingData = new Shading();
 		
 		canvas.addGLEventListener(this);
 		canvas.addKeyListener(new MyKeyListener(this));
@@ -51,7 +58,7 @@ public class ObjViewer extends JFrame implements GLEventListener {
 	}
 
 	public void init(GLAutoDrawable drawable) {
-		//this.drawable = drawable;
+		
 		GL gl = drawable.getGL();
 
 		// Set background color
@@ -74,9 +81,6 @@ public class ObjViewer extends JFrame implements GLEventListener {
 
 	}
 
-	public static GLCanvas getCanvas() {
-		return canref;
-	}
 
 	public void display(GLAutoDrawable drawable) {
 
@@ -89,7 +93,7 @@ public class ObjViewer extends JFrame implements GLEventListener {
 		//gl.glClear(GL.GL_COLOR_BUFFER_BIT);		//Leert die im Parameter festgelegten Buffer, indem sie mit einen Leerwert gefüllt werden
 		gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 
-		gl.glMatrixMode(GL.GL_PROJECTION);	//Legt fest, welche Matrix gerade aktiv ist
+		gl.glMatrixMode(GL.GL_MODELVIEW);	//Legt fest, welche Matrix gerade aktiv ist
 		gl.glLoadIdentity();		//Die Funktion glLoadIdentity ersetzt die aktuelle Matrix durch die Identitätsmatrix - Multiplikation einer Matrix A mit einer Einheitsmatrix ergibt wieder die Matrix A
 		
 		gl.glColorMaterial(GL.GL_FRONT_AND_BACK, GL.GL_AMBIENT);
@@ -97,7 +101,7 @@ public class ObjViewer extends JFrame implements GLEventListener {
 
 		
 		//Mouse Interaction
-		glu.gluLookAt(0,0,5, 0,0,0, 0,1,0);
+		glu.gluLookAt(0,0,1, 0,0,0, 0,1,0);
 		gl.glRotated(rotData.viewRotX, 1, 0, 0);			
 		gl.glRotated(rotData.viewRotY, 0, 1, 0);
 
@@ -111,13 +115,30 @@ public class ObjViewer extends JFrame implements GLEventListener {
 			gl.glRotatef(rotData.roty, 0.0f, 1.0f, 0.0f);
 			gl.glRotatef(rotData.rotz, 0.0f, 0.0f, 1.0f);
 		}
-				
 		
-		//glut.glutSolidTeapot(1);
-		//gl.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_LINE); WireFrame
+		gl.glScalef(scaling,scaling,scaling);
+		gl.glTranslatef(o,l,0.0f);
+		
+		
+		if(shadingData.isWireframe()){		
+			gl.glDisable(GL.GL_LIGHTING);
+			gl.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_LINE); //WireFrame
+			model.draw(gl);
+			gl.glEnable(GL.GL_LIGHTING);
+			gl.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL);			
+		}
+		
+		
+		
+		if(shadingData.isShadingEnabled()){
+			gl.glShadeModel(shadingData.getShadingmode());
+		}
+		//gl.glShadeModel(GL.GL_SMOOTH);
+		//gl.glShadeModel(GL.GL_FLAT);
+		
 		model.draw(gl);
 		
-		System.out.print("\nin display");		
+		//System.out.print("\nin display");		
 		
 
 	}

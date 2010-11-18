@@ -37,8 +37,8 @@ public class Model {
 	private ArrayList<Vert3> texcoordList = new ArrayList<Vert3>();
 
 	public Model(GL gl) {
-		loadModel("models/cube");
-		// decrFaceList();
+		loadModel("models/elephant");
+		
 		//buildArrays(gl);
 		buildVBOS(gl);
 	}
@@ -50,7 +50,7 @@ public class Model {
 		// Enable vertex arrays
 		gl.glEnableClientState(GL.GL_VERTEX_ARRAY);
 		gl.glEnableClientState(GL.GL_NORMAL_ARRAY);
-		gl.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY);
+		//gl.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY);
 		
 		gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBOVertices.get(0));
 		gl.glVertexPointer(3, GL.GL_DOUBLE, 0, 0);
@@ -58,26 +58,33 @@ public class Model {
 		gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBONormals.get(0));
 		gl.glNormalPointer(GL.GL_DOUBLE, 0, 0);
 		
-		gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBOTexcoords.get(0));
-		gl.glTexCoordPointer(3, GL.GL_DOUBLE, 0, 0);
+		//gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBOTexcoords.get(0));
+		//gl.glTexCoordPointer(3, GL.GL_DOUBLE, 0, 0);
 		
 		
 		//gl.glDrawRangeElements(GL.GL_TRIANGLES, 0, vertexList.size()-1, faceList.size() * 3, GL.GL_UNSIGNED_INT, 0);
 		//läuft nicht Fehler: java: vbo/vbo_exec_array.c:825: vbo_exec_DrawRangeElementsBaseVertex: Assertion `ctx->Array.ArrayObj->_MaxElement >= 1' failed.
 		
-		//gl.glDrawElements(GL.GL_TRIANGLES, faceList.size() * 3, GL.GL_UNSIGNED_INT, indices); //läuft nicht -> exception
+		try {
+			gl.glDrawElements(GL.GL_TRIANGLES, 	faceList.size() * 3, 			GL.GL_UNSIGNED_INT, indices); //läuft nicht -> exception
+			//					Mode,			Anzahl d. z. rendernden Elems,	Typ im Array	,	indices
+		} catch (Exception e) {
+			// TODO: handle exception
+			System.out.println(e.getMessage());
+		}
 		
-		//gl.glDrawArrays(GL.GL_TRIANGLES, 0, vertexList.size()-1); -> man sieht nichts aber läuft
+				
+		//gl.glDrawArrays(GL.GL_TRIANGLES, 0, vertexList.size()-1); //-> man sieht schrott aber es läuft
 		
 		
 		//unbind?!
-		//gl.glBindBuffer(GL.GL_ARRAY_BUFFER, 0);
-		//gl.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, 0);
+		gl.glBindBuffer(GL.GL_ARRAY_BUFFER, 0);
+		gl.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, 0);
 		
 		// Disable vertex arrays
 		gl.glDisableClientState(GL.GL_VERTEX_ARRAY);
 		gl.glDisableClientState(GL.GL_NORMAL_ARRAY);
-		gl.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY);
+		//gl.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY);
 	}
 
 	/*
@@ -120,27 +127,43 @@ public class Model {
 		
 		vertexBuffer = BufferUtil.newDoubleBuffer(vertexList.size() * 3);
 		normalBuffer = BufferUtil.newDoubleBuffer(normalList.size() * 3);
-		texcoordBuffer = BufferUtil.newDoubleBuffer(texcoordList.size() * 3);
+		//texcoordBuffer = BufferUtil.newDoubleBuffer(texcoordList.size() * 3);
 		indices = BufferUtil.newIntBuffer(faceList.size() * 3);
 
 		// Build the vertex, normal and texture arrays
 		for (int i = 0; i < vertexList.size(); i++) {
-			vertexBuffer.put(vertexList.get(i).getVert());			
+			double[] v = vertexList.get(i).getVert();
+			vertexBuffer.put(v);
+			//vertexBuffer.put(vertexList.get(i).getVert());
+			//System.out.println(vertexBuffer.get(i));
 			//texcoordBuffer.put(texcoordList.get(i).getVert());
 		}
 		
-		for (int i = 0; i < normalList.size(); i++) {					
+		for (int i = 0; i < normalList.size(); i++) {
+			double[] v = normalList.get(i).getVert();
 			normalBuffer.put(normalList.get(i).getVert());					
 		}
 		
 		for (int i = 0; i < faceList.size(); i++) {
+			int[] f = faceList.get(i).getFaceVerts();
 			indices.put(faceList.get(i).getFaceVerts());
+			//System.out.println(indices.get(i));
 		}
+		
+//		for (int i = 0; i < vertexList.size()*3; i++) {
+//			
+//			if(i%3 != 0)
+//				System.out.print(vertexBuffer.get(i) + " ");
+//			else
+//				System.out.println(vertexBuffer.get(i) + " ");
+//			
+//		}
+		
 		
 		// Rewind all buffers
 		vertexBuffer.rewind();
 		normalBuffer.rewind();
-		texcoordBuffer.rewind();
+		//texcoordBuffer.rewind();
 		indices.rewind();
 
 		VBOVertices = BufferUtil.newIntBuffer(1);
@@ -161,30 +184,40 @@ public class Model {
 		gl.glBufferData(GL.GL_ARRAY_BUFFER, normalList.size() * 3 * BufferUtil.SIZEOF_DOUBLE, normalBuffer, GL.GL_STATIC_DRAW);
 
 		// Generate and bind the Texture Coordinates Buffer
-		VBOTexcoords = BufferUtil.newIntBuffer(1);
-		// Get a valid name
-		gl.glGenBuffers(1, VBOTexcoords);
-		// Bind the Buffer
-		gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBOTexcoords.get(0));
-		// Load the Data
-		gl.glBufferData(GL.GL_ARRAY_BUFFER, texcoordList.size() * 3 * BufferUtil.SIZEOF_DOUBLE, texcoordBuffer, GL.GL_STATIC_DRAW);
+//		VBOTexcoords = BufferUtil.newIntBuffer(1);
+//		// Get a valid name
+//		gl.glGenBuffers(1, VBOTexcoords);
+//		// Bind the Buffer
+//		gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBOTexcoords.get(0));
+//		// Load the Data
+//		gl.glBufferData(GL.GL_ARRAY_BUFFER, texcoordList.size() * 3 * BufferUtil.SIZEOF_DOUBLE, texcoordBuffer, GL.GL_STATIC_DRAW);
+				
 		
-		indices = BufferUtil.newIntBuffer(1);
+		/* ** läuft nicht wenn die 3 zeilen drin sind Fehler: Required 36 remaining elements in buffer, only had 1
 		gl.glGenBuffers(1, indices);
 		gl.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, indices.get(0));
 		gl.glBufferData(GL.GL_ELEMENT_ARRAY_BUFFER, faceList.size() * 3 * BufferUtil.SIZEOF_INT, indices, GL.GL_STATIC_DRAW);
+		*/
 		
+		/** GL_ARRAY_BUFFER
+				Das Puffer-Objekt wird zur Speicherung von Vertexarray-Daten benutzt.
+			GL_ELEMENT_ARRAY_BUFFER
+				Das Puffer-Objekt dient zur Speicherung von Indexwerten für Vertexarrays.
+		**/
 
-		/* glVertexPointer specifies the location and data format of an array of vertex coordinates to use when rendering.
+		
+		
+		/** glVertexPointer specifies the location and data format of an array of vertex coordinates to use when rendering.
         size specifies the number of coordinates per vertex, and must be 2, 3, or 4.
         type specifies the data type of each coordinate, and stride specifies the byte stride from one vertex to the next, allowing vertices and attributes
         to be packed into a single array or stored in separate arrays
-		 */
+		**/
+		
 		gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBOVertices.get(0));
 		gl.glVertexPointer(3, GL.GL_DOUBLE, 0, 0);
 		
-		gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBOTexcoords.get(0));
-		gl.glTexCoordPointer(3, GL.GL_DOUBLE, 0, 0);
+//		gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBOTexcoords.get(0));
+//		gl.glTexCoordPointer(3, GL.GL_DOUBLE, 0, 0);
 
 		gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBONormals.get(0));
 		gl.glNormalPointer(GL.GL_DOUBLE, 0, 0);
@@ -194,10 +227,10 @@ public class Model {
 	}
 
 	private void loadModel(String name) {
-		String fnm = name + ".obj";
+		String filename = name + ".obj";
 		try {
-			System.out.println("Loading model from " + fnm + " ...");
-			BufferedReader br = new BufferedReader(new FileReader(fnm));
+			System.out.println("Loading model from " + filename + " ...");
+			BufferedReader br = new BufferedReader(new FileReader(filename));
 
 			readModel(br);
 
