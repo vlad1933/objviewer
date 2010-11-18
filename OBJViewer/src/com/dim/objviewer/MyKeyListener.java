@@ -30,19 +30,19 @@ public class MyKeyListener implements KeyListener {
 			break;
 		case java.awt.event.KeyEvent.VK_4:
 			//ov.rotData.rotateGl(true, 'y');
-			ov.l -= 0.02f;
+			ov.o -= 0.02f;
 			break;
 		case java.awt.event.KeyEvent.VK_6:
 			//ov.rotData.rotateGl(false, 'y');
-			ov.l += 0.02f;
+			ov.o += 0.02f;
 			break;
 		case java.awt.event.KeyEvent.VK_8:
 			//ov.rotData.rotateGl(true, 'x');
-			ov.scaling -= 0.02f;
+			ov.l += 0.02f;
 			break;
 		case java.awt.event.KeyEvent.VK_2:
 			//ov.rotData.rotateGl(false, 'x');
-			ov.scaling += 0.02f;
+			ov.l -= 0.02f;
 			break;
 		case java.awt.event.KeyEvent.VK_SPACE:
 			ov.shadingData.toggleWireframe();			
