@@ -5,12 +5,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.nio.DoubleBuffer;
 import java.nio.IntBuffer;
-import java.util.ArrayList;
-import java.util.StringTokenizer;
 import java.util.*;
 
 import javax.media.opengl.GL;
-
 import com.sun.opengl.util.BufferUtil;
 
 /*
@@ -35,9 +32,13 @@ public class Model {
 	private ArrayList<Vert3> normalList = new ArrayList<Vert3>();
 	private ArrayList<Face3> faceList = new ArrayList<Face3>();
 	private ArrayList<Vert3> texcoordList = new ArrayList<Vert3>();
+	
+	private ModelDimensions modeldims = new ModelDimensions();
+	private double maxSize;
 
 	public Model(GL gl) {
 		loadModel("models/elephant");
+		centerScale();
 		
 		//buildArrays(gl);
 		buildVBOS(gl);
@@ -142,6 +143,7 @@ public class Model {
 		for (int i = 0; i < normalList.size(); i++) {
 			double[] v = normalList.get(i).getVert();
 			normalBuffer.put(normalList.get(i).getVert());					
+			//normalBuffer.put(faceList.get(i).getFaceNormals()); //Normalenindizes aus facliste?!
 		}
 		
 		for (int i = 0; i < faceList.size(); i++) {
@@ -259,7 +261,7 @@ public class Model {
 					if (line.startsWith("v ")) { // vertex
 						extractVert(line);
 					} else if (line.startsWith("vt")) { // tex-coord
-						extractTexCord(line);
+						extractTexCord(line);//not supported yet
 						this.noVT = false;
 					} else if (line.startsWith("vn")) // normal
 						extractNormal(line);
@@ -376,6 +378,36 @@ public class Model {
 
 		return token_arr;
 	}
+	
+	  private void centerScale()
+	  /* Position the model so it's center is at the origin,
+	     and scale it so its longest dimension is no bigger
+	     than maxSize. */
+	  {
+	    // get the model's center point
+	    Vert3 center = modeldims.getCenter();
+
+	    // calculate a scale factor
+	    double scaleFactor = 1.0;
+	    double largest = modeldims.getLargest();
+	    // System.out.println("Largest dimension: " + largest);
+	    if (largest != 0.0f)
+	      scaleFactor = (maxSize / largest);
+	    System.out.println("Scale factor: " + scaleFactor);
+
+	    // modify the model's vertices
+	    Vert3 vert;
+	    double x, y, z;
+	    for (int i = 0; i < vertexList.size(); i++) {
+	      vert = (Vert3) vertexList.get(i);
+	      x = (vert.getVertA() - center.getVertA()) * scaleFactor;
+	      vert.setVertA(x);
+	      y = (vert.getVertB() - center.getVertB()) * scaleFactor;
+	      vert.setVertB(y);
+	      z = (vert.getVertC() - center.getVertC()) * scaleFactor;
+	      vert.setVertC(z);
+	    }
+	  } // end of centerScale()
 	
 	public boolean hasVT(){
 		if(this.noVT)

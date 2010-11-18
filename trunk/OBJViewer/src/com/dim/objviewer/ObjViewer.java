@@ -28,7 +28,7 @@ public class ObjViewer extends JFrame implements GLEventListener {
 	public RotationData rotData;	
 	public Shading shadingData;
 	
-	public float scaling = 1.0f;
+	public float scaling = 0.01f;
 	public float o = 0.0f;
 	public float l = 0.0f;
 	
@@ -78,6 +78,8 @@ public class ObjViewer extends JFrame implements GLEventListener {
 		gl.glEnable(GL.GL_COLOR_MATERIAL);
 		
 		model = new Model(gl);
+		
+		
 
 	}
 
@@ -101,7 +103,7 @@ public class ObjViewer extends JFrame implements GLEventListener {
 
 		
 		//Mouse Interaction
-		glu.gluLookAt(0,0,1, 0,0,0, 0,1,0);
+		glu.gluLookAt(0,0,5, 0,0,0, 0,1,0);
 		gl.glRotated(rotData.viewRotX, 1, 0, 0);			
 		gl.glRotated(rotData.viewRotY, 0, 1, 0);
 
@@ -115,6 +117,7 @@ public class ObjViewer extends JFrame implements GLEventListener {
 			gl.glRotatef(rotData.roty, 0.0f, 1.0f, 0.0f);
 			gl.glRotatef(rotData.rotz, 0.0f, 0.0f, 1.0f);
 		}
+		
 		
 		gl.glScalef(scaling,scaling,scaling);
 		gl.glTranslatef(o,l,0.0f);
