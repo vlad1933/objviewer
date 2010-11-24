@@ -23,7 +23,7 @@ public class Model {
 	private IntBuffer indices;
 	private DoubleBuffer texcoordBuffer;
 
-	private IntBuffer VBOVertices, VBONormals, VBOTexcoords;
+	private IntBuffer VBOVertices, VBONormals, VBOTexcoords, VBOIndices;
 	
 	private boolean noVT = true;
 
@@ -32,16 +32,17 @@ public class Model {
 	private ArrayList<Vert3> normalList = new ArrayList<Vert3>();
 	private ArrayList<Face3> faceList = new ArrayList<Face3>();
 	private ArrayList<Vert3> texcoordList = new ArrayList<Vert3>();
+	private ArrayList<Vert3> newNormalList = new ArrayList<Vert3>();
 	
 	private ModelDimensions modeldims = new ModelDimensions();
 	private double maxSize;
 
 	public Model(GL gl) {
 		loadModel("models/elephant");
-		centerScale();
 		
-		//buildArrays(gl);
+				
 		buildVBOS(gl);
+		centerScale();
 	}
 
 	/*
@@ -59,15 +60,16 @@ public class Model {
 		gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBONormals.get(0));
 		gl.glNormalPointer(GL.GL_DOUBLE, 0, 0);
 		
+		gl.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, VBOIndices.get(0));
+		
+		
 		//gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBOTexcoords.get(0));
 		//gl.glTexCoordPointer(3, GL.GL_DOUBLE, 0, 0);
-		
-		
-		//gl.glDrawRangeElements(GL.GL_TRIANGLES, 0, vertexList.size()-1, faceList.size() * 3, GL.GL_UNSIGNED_INT, 0);
-		//läuft nicht Fehler: java: vbo/vbo_exec_array.c:825: vbo_exec_DrawRangeElementsBaseVertex: Assertion `ctx->Array.ArrayObj->_MaxElement >= 1' failed.
+				
 		
 		try {
-			gl.glDrawElements(GL.GL_TRIANGLES, 	faceList.size() * 3, 			GL.GL_UNSIGNED_INT, indices); //läuft nicht -> exception
+			gl.glDrawElements(GL.GL_TRIANGLES, 	faceList.size() * 3, 			GL.GL_UNSIGNED_INT, 0); //läuft nicht -> exception
+			//gl.glDrawElements(GL.GL_TRIANGLES, indexList.length * 3, GL.GL_UNSIGNED_INT, 0);
 			//					Mode,			Anzahl d. z. rendernden Elems,	Typ im Array	,	indices
 		} catch (Exception e) {
 			// TODO: handle exception
@@ -91,76 +93,56 @@ public class Model {
 	/*
 	 * Builds the vertex arrays for this house.
 	 */
-	private void buildArrays(GL gl) {
-		/*
-		 * Allocate space for the vertex and normal arrays. The class
-		 * BufferUtils is used for convenience. You can also create the buffers
-		 * using the java.nio methods. For example: vertexBuffer =
-		 * ByteBuffer.allocateDirect(sizeInBytes).asDoubleBuffer();
-		 */
-		vertexBuffer = BufferUtil.newDoubleBuffer(vertexList.size() * 3);
-		normalBuffer = BufferUtil.newDoubleBuffer(normalList.size() * 3);
-		// Build the vertex and normal arrays
-		for (int i = 0; i < vertexList.size(); i++) {
-			vertexBuffer.put((vertexList.get(i)).getVert());
-		}
-		for (int i = 0; i < normalList.size(); i++) {
-			normalBuffer.put(normalList.get(i).getVert());
-		}
 
-		// Allocate space for the index array
-		indices = BufferUtil.newIntBuffer(faceList.size() * 3);
-		for (int i = 0; i < faceList.size(); i++) {
-			indices.put(faceList.get(i).getFaceVerts());
-		}
-
-		// Rewind all buffers
-		vertexBuffer.rewind();
-		normalBuffer.rewind();
-		indices.rewind();
-
-		// Tell OpenGL where to find the data
-		gl.glVertexPointer(3, GL.GL_DOUBLE, 0, vertexBuffer);
-		gl.glNormalPointer(GL.GL_DOUBLE, 0, normalBuffer);
-	}
 
 	private void buildVBOS(GL gl) {
 		
 		vertexBuffer = BufferUtil.newDoubleBuffer(vertexList.size() * 3);
-		normalBuffer = BufferUtil.newDoubleBuffer(normalList.size() * 3);
+		normalBuffer = BufferUtil.newDoubleBuffer(vertexList.size() * 3);
+		
 		//texcoordBuffer = BufferUtil.newDoubleBuffer(texcoordList.size() * 3);
 		indices = BufferUtil.newIntBuffer(faceList.size() * 3);
 
 		// Build the vertex, normal and texture arrays
 		for (int i = 0; i < vertexList.size(); i++) {
 			double[] v = vertexList.get(i).getVert();
-			vertexBuffer.put(v);
-			//vertexBuffer.put(vertexList.get(i).getVert());
-			//System.out.println(vertexBuffer.get(i));
-			//texcoordBuffer.put(texcoordList.get(i).getVert());
+			vertexBuffer.put(v);			
+			newNormalList.add(new Vert3(0, 0, 0));			
 		}
 		
-		for (int i = 0; i < normalList.size(); i++) {
-			double[] v = normalList.get(i).getVert();
-			normalBuffer.put(normalList.get(i).getVert());					
-			//normalBuffer.put(faceList.get(i).getFaceNormals()); //Normalenindizes aus facliste?!
+		//normalList padden mit Nullen - wird überschrieben
+		if(normalList.size() < vertexList.size()){
+			for(int i = normalList.size(); i < vertexList.size(); i++ ){
+				normalList.add(new Vert3(0,0,0));
+			}
 		}
 		
 		for (int i = 0; i < faceList.size(); i++) {
 			int[] f = faceList.get(i).getFaceVerts();
+			int[] fn = faceList.get(i).getFaceNormals();
 			indices.put(faceList.get(i).getFaceVerts());
-			//System.out.println(indices.get(i));
+			
+			newNormalList.set(f[0],normalList.get(fn[0]));
+			newNormalList.set(f[1],normalList.get(fn[1]));
+			newNormalList.set(f[2],normalList.get(fn[2]));
+			
+			System.out.println(newNormalList.get(f[0]));
 		}
 		
-//		for (int i = 0; i < vertexList.size()*3; i++) {
-//			
-//			if(i%3 != 0)
-//				System.out.print(vertexBuffer.get(i) + " ");
-//			else
-//				System.out.println(vertexBuffer.get(i) + " ");
-//			
+		normalBuffer.rewind();
+		for(Vert3 v: newNormalList){
+			normalBuffer.put(v.getVert());			
+		}		
+		
+//		for(int i = 0; i < normalBuffer.capacity(); i++){
+//			double foo = normalBuffer.get(i);
+//			System.out.println(i + " : " + foo);
 //		}
 		
+		for(int i = 0; i < indices.capacity(); i++){
+			int foo = indices.get(i);
+			System.out.println(i + " : " + foo);
+		}
 		
 		// Rewind all buffers
 		vertexBuffer.rewind();
@@ -193,13 +175,17 @@ public class Model {
 //		gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBOTexcoords.get(0));
 //		// Load the Data
 //		gl.glBufferData(GL.GL_ARRAY_BUFFER, texcoordList.size() * 3 * BufferUtil.SIZEOF_DOUBLE, texcoordBuffer, GL.GL_STATIC_DRAW);
-				
 		
-		/* ** läuft nicht wenn die 3 zeilen drin sind Fehler: Required 36 remaining elements in buffer, only had 1
-		gl.glGenBuffers(1, indices);
-		gl.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, indices.get(0));
-		gl.glBufferData(GL.GL_ELEMENT_ARRAY_BUFFER, faceList.size() * 3 * BufferUtil.SIZEOF_INT, indices, GL.GL_STATIC_DRAW);
-		*/
+		VBOIndices = BufferUtil.newIntBuffer(1);
+		gl.glGenBuffers(1, VBOIndices);
+		gl.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, VBOIndices.get(0));
+		gl.glBufferData(GL.GL_ELEMENT_ARRAY_BUFFER,	faceList.size() * 3 * BufferUtil.SIZEOF_INT, indices, GL.GL_STATIC_DRAW);
+		
+		
+//		gl.glGenBuffers(1, indices);
+//		gl.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, indices.get(0));
+//		gl.glBufferData(GL.GL_ELEMENT_ARRAY_BUFFER, faceList.size() * 3 * BufferUtil.SIZEOF_INT, indices, GL.GL_STATIC_DRAW);
+		
 		
 		/** GL_ARRAY_BUFFER
 				Das Puffer-Objekt wird zur Speicherung von Vertexarray-Daten benutzt.
@@ -215,16 +201,16 @@ public class Model {
         to be packed into a single array or stored in separate arrays
 		**/
 		
-		gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBOVertices.get(0));
-		gl.glVertexPointer(3, GL.GL_DOUBLE, 0, 0);
-		
-//		gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBOTexcoords.get(0));
-//		gl.glTexCoordPointer(3, GL.GL_DOUBLE, 0, 0);
-
-		gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBONormals.get(0));
-		gl.glNormalPointer(GL.GL_DOUBLE, 0, 0);
-		
-		gl.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, indices.get(0));
+//		gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBOVertices.get(0));
+//		gl.glVertexPointer(3, GL.GL_DOUBLE, 0, 0);
+//		
+////		gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBOTexcoords.get(0));
+////		gl.glTexCoordPointer(2, GL.GL_DOUBLE, 0, 0);
+//
+//		gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBONormals.get(0));
+//		gl.glNormalPointer(GL.GL_DOUBLE, 0, 0);
+//		
+//		gl.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, indices.get(0));
 		
 	}
 

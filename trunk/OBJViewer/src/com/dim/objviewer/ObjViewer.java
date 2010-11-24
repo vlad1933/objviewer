@@ -103,7 +103,7 @@ public class ObjViewer extends JFrame implements GLEventListener {
 
 		
 		//Mouse Interaction
-		glu.gluLookAt(0,0,5, 0,0,0, 0,1,0);
+		glu.gluLookAt(0,0,3, 0,0,0, 0,1,0);
 		gl.glRotated(rotData.viewRotX, 1, 0, 0);			
 		gl.glRotated(rotData.viewRotY, 0, 1, 0);
 

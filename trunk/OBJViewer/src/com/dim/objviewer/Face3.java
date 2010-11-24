@@ -20,6 +20,9 @@ private int[] a,b,c;
 		a[0]--;
 		b[0]--;
 		c[0]--;
+		a[2]--;
+		b[2]--;
+		c[2]--;
 	}
 	
 	public int[] getFaceVerts(){
