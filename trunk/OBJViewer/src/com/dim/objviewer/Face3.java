@@ -2,6 +2,7 @@ package com.dim.objviewer;
 
 public class Face3 {
 private int[] a,b,c;
+public boolean isDecremented = false;
 
 	/* a/b/c consists of 
 	 * [0] Index of Vertex which is part of the Face
@@ -20,9 +21,12 @@ private int[] a,b,c;
 		a[0]--;
 		b[0]--;
 		c[0]--;
+		
 		a[2]--;
 		b[2]--;
 		c[2]--;
+		
+		this.isDecremented = true;
 	}
 	
 	public int[] getFaceVerts(){
@@ -47,20 +51,21 @@ private int[] a,b,c;
 			return true;
 	}
 	
-	public Vert3 calcNormals(Vert3 v1, Vert3 v2){
-		
-		if(this.hasTexVert())
-			return new Vert3(a[1],b[1],c[1]);
-		
-		
-		Vert3 out = new Vert3(0,0,0);
-		
-//		out[x] = v1[y] * v2[z] - v1[z] * v2[y];
-//		out[y] = v1[z] * v2[x] - v1[x] * v2[z];
-//		out[z] = v1[x] * v2[y] - v1[y] * v2[x];
-		
-		return out;
-		                                    
+	public void setNormIndex(int normIndex){
+		a[2] = normIndex;
+		b[2] = normIndex;
+		c[2] = normIndex;
 	}
+	
+	public void setVertIndex(int vertIndex1,int vertIndex2,int vertIndex3){
+		System.out.println("index: " + vertIndex1+vertIndex2+vertIndex3);
+		
+		this.a[0] = vertIndex1;
+		this.b[0] = vertIndex2;
+		this.c[0] = vertIndex3;
+		
+		System.out.println("index: " + a[0] + b[0] + c[0] + "WTF???!!");
+	}
+
 		
 }
