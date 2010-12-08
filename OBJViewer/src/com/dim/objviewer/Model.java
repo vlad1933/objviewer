@@ -38,7 +38,7 @@ public class Model {
 	private double maxSize;
 
 	public Model(GL gl) {
-		loadModel("models/elephant");
+		loadModel("models/bunny");
 		
 				
 		buildVBOS(gl);
@@ -126,7 +126,7 @@ public class Model {
 			newNormalList.set(f[1],normalList.get(fn[1]));
 			newNormalList.set(f[2],normalList.get(fn[2]));
 			
-			System.out.println(newNormalList.get(f[0]));
+			//System.out.println(newNormalList.get(f[0]));
 		}
 		
 		normalBuffer.rewind();
@@ -141,7 +141,7 @@ public class Model {
 		
 		for(int i = 0; i < indices.capacity(); i++){
 			int foo = indices.get(i);
-			System.out.println(i + " : " + foo);
+			//System.out.println(i + " : " + foo);
 		}
 		
 		// Rewind all buffers
@@ -215,6 +215,11 @@ public class Model {
 	}
 
 	private void loadModel(String name) {
+		Vert3 v1 = new Vert3(2,3,4);
+		Vert3 v2 = new Vert3(2,2,2);
+		Vert3 v3 = Vert3.multiply(v1, v2);
+		v3.printVert();
+		
 		String filename = name + ".obj";
 		try {
 			System.out.println("Loading model from " + filename + " ...");
@@ -227,6 +232,8 @@ public class Model {
 			System.out.println(e.getMessage());
 			System.exit(1);
 		}
+		
+		
 	}
 
 	private void readModel(BufferedReader br)
@@ -257,8 +264,7 @@ public class Model {
 					} else if (line.startsWith("#")) // comment line
 						System.out.println("comment: " + line);
 					else
-						System.out.println("Ignoring line " + lineNum + " : "
-								+ line);
+						System.out.println("Ignoring line " + lineNum + " : " + line);
 				}
 			}
 		} catch (IOException e) {
@@ -277,9 +283,6 @@ public class Model {
 		System.out.println("file read");
 	}
 
-	private void computeNormals() {
-		System.out.println("computing normals ... (haha)");
-	}
 
 	private void extractVert(String line) {
 		StringTokenizer tokens = new StringTokenizer(line, " ");
@@ -323,22 +326,43 @@ public class Model {
 
 		blank_tokens.nextToken(); // skip the OBJ word
 
-		try {
-
-			int[] a = cutSlash(blank_tokens.nextToken());
-			int[] b = cutSlash(blank_tokens.nextToken());
-			int[] c = cutSlash(blank_tokens.nextToken());
-
-			Face3 face = new Face3(a, b, c);
-			faceList.add(face);
-
-		} catch (NumberFormatException e) {
-			System.out.println(e.getMessage());
+		if(line.contains("/")){			
+			try {
+	
+				int[] a = cutSlash(blank_tokens.nextToken());
+				int[] b = cutSlash(blank_tokens.nextToken());
+				int[] c = cutSlash(blank_tokens.nextToken());
+	
+				Face3 face = new Face3(a, b, c);
+				faceList.add(face);
+	
+			} catch (NumberFormatException e) {
+				System.out.println(e.getMessage());
+			}
+		}else{	//Diese OBJ File hat keine Slashes. Annahme: die 3 gegebenen Int Werte sind vertexIndizes  
+			try {
+				
+				int vertexIndex1 = Integer.parseInt(blank_tokens.nextToken());
+				int vertexIndex2 = Integer.parseInt(blank_tokens.nextToken());
+				int vertexIndex3 = Integer.parseInt(blank_tokens.nextToken());
+				//System.out.println("index: " + vertexIndex1+vertexIndex2+vertexIndex3);
+								
+				int nullIndex[] = {1,1,1};
+								
+				//Die fehlenden Werte, TexKoord & NormalKoord, werden (erstmal) mit Nullvektoren besetzt 
+				Face3 face = new Face3(nullIndex, nullIndex, nullIndex);
+				face.setVertIndex(vertexIndex1, vertexIndex2, vertexIndex3);
+				System.out.println("index: " + face);
+				faceList.add(face);
+	
+			} catch (NumberFormatException e) {
+				System.out.println(e.getMessage());
+			}
 		}
 	}
 
 	private int[] cutSlash(String str) {
-		int[] token_arr = { -1, -1, -1 };
+		int[] token_arr = { 0, 0, 0 };
 
 		StringTokenizer slash_tokens = new StringTokenizer(str, "/");
 
@@ -359,7 +383,7 @@ public class Model {
 			token_arr[2] = Integer.parseInt(slash_tokens.nextToken());
 		} else {
 			token_arr[2] = token_arr[1];
-			token_arr[1] = -1;
+			token_arr[1] = -1; //the normal index
 		}
 
 		return token_arr;
@@ -376,7 +400,7 @@ public class Model {
 	    // calculate a scale factor
 	    double scaleFactor = 1.0;
 	    double largest = modeldims.getLargest();
-	    // System.out.println("Largest dimension: " + largest);
+	    System.out.println("Largest dimension: " + largest);
 	    if (largest != 0.0f)
 	      scaleFactor = (maxSize / largest);
 	    System.out.println("Scale factor: " + scaleFactor);
@@ -400,5 +424,41 @@ public class Model {
 			return false; 
 		else 
 			return true;
+	}
+	
+	private void computeNormals() {
+		
+//		Will man anhand von Dreiecksdaten Normalen erzeugen: 
+//		Das Vektor-Kreuzprodukt. Um die Normale der Fläche beschrieben durch die 3 Ecken V1, V2, V3 zu bekommen, braucht man nur zu rechnen:
+//
+//		N = (V1 - V2)x(V2 - V3)
+//
+//		Wenn wir das für jedes Polygon durchziehen, dann können wir für jeweils 3 Vertices die Normale angeben. 
+//		Das schaut ein bisschen eckig aus, bringt uns unserem Ziel aber gewaltig näher.		
+		
+		//solange wie faceList lang ist
+		for(int i = 0; i < faceList.size(); i++)
+		{
+			Vert3 v1 = new Vert3(0,0,0);
+			Vert3 v2 = new Vert3(0,0,0);
+			Vert3 v3 = new Vert3(0,0,0);
+			Vert3 norm = new Vert3(0,0,0);
+			
+			int[] vertIndices = faceList.get(i).getFaceVerts();
+			v1 = vertexList.get(vertIndices[0]);
+			v2 = vertexList.get(vertIndices[1]);
+			v3 = vertexList.get(vertIndices[2]);
+			
+			norm = Vert3.multiply((Vert3.minus(v1, v2)),(Vert3.minus(v2, v3)));
+			
+			faceList.get(i).setNormIndex(i);
+			
+			if(i%3 == 0){
+				normalList.add(norm);
+			}
+				
+		}
+
+		
 	}
 }

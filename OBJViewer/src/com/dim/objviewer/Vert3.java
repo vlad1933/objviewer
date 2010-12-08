@@ -11,6 +11,12 @@ public class Vert3 {
 		this.c = c;
 	}
 	
+	public Vert3(){
+		this.a = 0;
+		this.b = 0;
+		this.c = 0;
+	}
+	
 	public double getVertA(){
 		return a;
 	}
@@ -44,6 +50,41 @@ public class Vert3 {
 		this.a = a;
 		this.b = b;
 		this.c = c;
+	}
+	
+	public static Vert3 plus(Vert3 leftVert, Vert3 rightVert){
+		Vert3 resultVert = new Vert3(0,0,0);
+		
+		resultVert.setVertA(leftVert.getVertA()+rightVert.getVertA());
+		resultVert.setVertB(leftVert.getVertB()+rightVert.getVertB());
+		resultVert.setVertC(leftVert.getVertC()+rightVert.getVertC());
+		
+		return resultVert;
+	}
+		
+	
+	public static Vert3 minus(Vert3 leftVert, Vert3 rightVert){
+		Vert3 resultVert = new Vert3(0,0,0);
+		
+		resultVert.setVertA(leftVert.getVertA()-rightVert.getVertA());
+		resultVert.setVertB(leftVert.getVertB()-rightVert.getVertB());
+		resultVert.setVertC(leftVert.getVertC()-rightVert.getVertC());
+		
+		return resultVert;
+	}
+	
+	public static Vert3 multiply(Vert3 leftVert, Vert3 rightVert){
+		Vert3 resultVert = new Vert3(0,0,0);
+		
+		resultVert.setVertA(leftVert.getVertA()*rightVert.getVertA());
+		resultVert.setVertB(leftVert.getVertB()*rightVert.getVertB());
+		resultVert.setVertC(leftVert.getVertC()*rightVert.getVertC());
+		
+		return resultVert;
+	}
+	
+	public void printVert(){
+		System.out.println("Vert3: " + this.getVertA() + " " + this.getVertB() + " " + this.getVertC() + " " );
 	}
 	
 

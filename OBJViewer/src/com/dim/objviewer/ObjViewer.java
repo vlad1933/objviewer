@@ -14,6 +14,7 @@ import javax.swing.JFrame;
 
 import java.nio.DoubleBuffer;
 import java.nio.IntBuffer;
+import java.util.StringTokenizer;
 
 import com.sun.opengl.util.BufferUtil;
 import com.sun.opengl.util.GLUT;
@@ -80,6 +81,38 @@ public class ObjViewer extends JFrame implements GLEventListener {
 		model = new Model(gl);
 		
 		
+		/**  
+		 * Print supported Extensions and OpenGL Version
+		 */
+		
+		String glVersion = gl.glGetString(GL.GL_VERSION);
+
+		System.out.printf("Supported OpenGL Version: %s\n", glVersion);
+		float versionNr = Float.parseFloat(glVersion.substring(0, 4));
+
+		if (versionNr >= 2.0) {
+
+			System.out.println("OpenGL Version >= 2.0. Setting up shaders");
+
+		} else {
+
+			System.out.println("OpenGL Version < 2.0. Can not set up shaders");
+
+		}
+		// Print supported extensions
+
+		int cnt = 0;
+		
+		String text = gl.glGetString(GL.GL_EXTENSIONS);
+		StringTokenizer tokenizer = new StringTokenizer(text);
+
+		while (tokenizer.hasMoreTokens()) {
+			System.out.printf("Extension Nr. %d : %s \n", cnt++, tokenizer
+					.nextToken());
+		}
+
+		// End of print
+		
 
 	}
 
@@ -119,7 +152,7 @@ public class ObjViewer extends JFrame implements GLEventListener {
 		}
 		
 		
-		gl.glScalef(scaling,scaling,scaling);
+		gl.glScalef(scaling,scaling,scaling); //Wie kann ich Normalen normalisieren? Muss ich überhaupt? Nach Skalieren sollten normalen schrott sein
 		gl.glTranslatef(o,l,0.0f);
 		
 		
