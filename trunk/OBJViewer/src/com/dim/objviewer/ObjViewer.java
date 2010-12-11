@@ -88,7 +88,7 @@ public class ObjViewer extends JFrame implements GLEventListener {
 		String glVersion = gl.glGetString(GL.GL_VERSION);
 
 		System.out.printf("Supported OpenGL Version: %s\n", glVersion);
-		float versionNr = Float.parseFloat(glVersion.substring(0, 4));
+		float versionNr = 2.1f;//Float.parseFloat(glVersion.substring(0, 4));
 
 		if (versionNr >= 2.0) {
 
