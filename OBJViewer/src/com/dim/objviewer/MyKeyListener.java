@@ -45,7 +45,8 @@ public class MyKeyListener implements KeyListener {
 			ov.l -= 0.02f;
 			break;
 		case java.awt.event.KeyEvent.VK_SPACE:
-			ov.shadingData.toggleWireframe();			
+			//ov.shadingData.toggleWireframe();
+			Model.DEBUG = true;
 			break;
 		case java.awt.event.KeyEvent.VK_S:
 			ov.shadingData.setShadingmode("smooth");			
@@ -64,6 +65,9 @@ public class MyKeyListener implements KeyListener {
 			ov.o = 0.0f;
 			ov.l = 0.0f;			
 			break;
+		case java.awt.event.KeyEvent.VK_1:
+			ov.initShader(can);
+			
 		default:
 			System.out.print("key typed - default\nKey: " + e.getKeyCode());
 			break;

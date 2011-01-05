@@ -9,6 +9,7 @@ import java.util.*;
 
 import javax.media.opengl.GL;
 import com.sun.opengl.util.BufferUtil;
+import java.util.regex.*;
 
 /*
  * Third Revision!
@@ -22,6 +23,8 @@ public class Model {
 	// Buffer for the index array
 	private IntBuffer indices;
 	private DoubleBuffer texcoordBuffer;
+	private int[] debug_arr;
+	public static boolean DEBUG = false;
 
 	private IntBuffer VBOVertices, VBONormals, VBOTexcoords, VBOIndices;
 	
@@ -30,19 +33,26 @@ public class Model {
 	// Array of vertices building the house
 	private ArrayList<Vert3> vertexList = new ArrayList<Vert3>();
 	private ArrayList<Vert3> normalList = new ArrayList<Vert3>();
+	//deprecated
 	private ArrayList<Face3> faceList = new ArrayList<Face3>();
+	//new faceList is used in future
+	private ArrayList<Facette> nfaceList = new ArrayList<Facette>();
 	private ArrayList<Vert3> texcoordList = new ArrayList<Vert3>();
 	private ArrayList<Vert3> newNormalList = new ArrayList<Vert3>();
+	
+	public Pattern fpat = Pattern.compile("^f\\s+(\\d+)(?:/(\\d*))?(?:/(\\d+))?\\s+(\\d+)(?:/(\\d*))?(?:/(\\d+))?\\s+(\\d+)(?:/(\\d*))?(?:/(\\d+))?(?:\\s+(\\d+)(?:/(\\d*))?(?:/(\\d+))?)?$");
+	public Matcher fm;
+	
 	
 	private ModelDimensions modeldims = new ModelDimensions();
 	private double maxSize;
 
 	public Model(GL gl) {
-		loadModel("models/bunny");
-		
+		loadModel("models/cube");		
 				
+		//deprecated_buildVBOS(gl);
 		buildVBOS(gl);
-		centerScale();
+		//centerScale();
 	}
 
 	/*
@@ -52,33 +62,29 @@ public class Model {
 		// Enable vertex arrays
 		gl.glEnableClientState(GL.GL_VERTEX_ARRAY);
 		gl.glEnableClientState(GL.GL_NORMAL_ARRAY);
-		//gl.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY);
+		gl.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY);
+		//gl.glEnableClientState(GL.GL_INDEX_ARRAY); //If enabled, the index array is enabled for writing and used during rendering when drawelemnts() is called
 		
 		gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBOVertices.get(0));
 		gl.glVertexPointer(3, GL.GL_DOUBLE, 0, 0);
 		
+		gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBOTexcoords.get(0));
+		gl.glTexCoordPointer(2, GL.GL_DOUBLE, 0, 0);
+
 		gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBONormals.get(0));
 		gl.glNormalPointer(GL.GL_DOUBLE, 0, 0);
 		
 		gl.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, VBOIndices.get(0));
-		
-		
-		//gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBOTexcoords.get(0));
-		//gl.glTexCoordPointer(3, GL.GL_DOUBLE, 0, 0);
 				
-		
-		try {
-			gl.glDrawElements(GL.GL_TRIANGLES, 	faceList.size() * 3, 			GL.GL_UNSIGNED_INT, 0); //läuft nicht -> exception
-			//gl.glDrawElements(GL.GL_TRIANGLES, indexList.length * 3, GL.GL_UNSIGNED_INT, 0);
-			//					Mode,			Anzahl d. z. rendernden Elems,	Typ im Array	,	indices
-		} catch (Exception e) {
-			// TODO: handle exception
-			System.out.println(e.getMessage());
+		if(DEBUG){			
+			printBuffer(VBOIndices, "indizee VBO");
 		}
 		
-				
-		//gl.glDrawArrays(GL.GL_TRIANGLES, 0, vertexList.size()-1); //-> man sieht schrott aber es läuft
-		
+		try {
+			gl.glDrawElements(GL.GL_TRIANGLES, faceList.size() * 3 , GL.GL_UNSIGNED_INT, 0); 
+		} catch (Exception e) {			
+			System.out.println(e.getMessage());
+		}		
 		
 		//unbind?!
 		gl.glBindBuffer(GL.GL_ARRAY_BUFFER, 0);
@@ -87,67 +93,98 @@ public class Model {
 		// Disable vertex arrays
 		gl.glDisableClientState(GL.GL_VERTEX_ARRAY);
 		gl.glDisableClientState(GL.GL_NORMAL_ARRAY);
-		//gl.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY);
+		gl.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY);
 	}
 
-	/*
-	 * Builds the vertex arrays for this house.
-	 */
-
-
+	
 	private void buildVBOS(GL gl) {
 		
 		vertexBuffer = BufferUtil.newDoubleBuffer(vertexList.size() * 3);
 		normalBuffer = BufferUtil.newDoubleBuffer(vertexList.size() * 3);
-		
-		//texcoordBuffer = BufferUtil.newDoubleBuffer(texcoordList.size() * 3);
-		indices = BufferUtil.newIntBuffer(faceList.size() * 3);
+		//die size ist hier strittig! sollte eher texcoord.size() * 2 sein
+		texcoordBuffer = BufferUtil.newDoubleBuffer(vertexList.size() * 2);		
+		indices = BufferUtil.newIntBuffer(nfaceList.size() * 3);
 
-		// Build the vertex, normal and texture arrays
-		for (int i = 0; i < vertexList.size(); i++) {
-			double[] v = vertexList.get(i).getVert();
-			vertexBuffer.put(v);			
-			newNormalList.add(new Vert3(0, 0, 0));			
+		
+		for(int i = 0 ; i < vertexList.size(); i++){
+			Vert3 vert = vertexList.get(i);			
+			vertexBuffer.put(vert.getVert());			
 		}
 		
-		//normalList padden mit Nullen - wird überschrieben
-		if(normalList.size() < vertexList.size()){
-			for(int i = normalList.size(); i < vertexList.size(); i++ ){
-				normalList.add(new Vert3(0,0,0));
-			}
-		}
+		/**
+		 * Dummylist wird verwendet da der Umgang mit ArrayList einfacher ist (im Speziellen das nicht sequentielle Füllen) als mit dem Buffer
+		 * Im Anschluss wird die Liste in den normalBuffer übertragen und für den GC freigegeben
+		 */
+		ArrayList<Vert3> dummyList = new ArrayList<Vert3>();
+		//Aufblasen d. Liste für asequentielles befüllen
+		for(int i = 0; i < vertexList.size(); i++)
+			dummyList.add(new Vert3());
 		
-		for (int i = 0; i < faceList.size(); i++) {
-			int[] f = faceList.get(i).getFaceVerts();
-			int[] fn = faceList.get(i).getFaceNormals();
-			indices.put(faceList.get(i).getFaceVerts());
+		for(int i = 0; i < nfaceList.size(); i++){
+			/* Filling in the normals */
+			Facette face = nfaceList.get(i);			
 			
-			newNormalList.set(f[0],normalList.get(fn[0]));
-			newNormalList.set(f[1],normalList.get(fn[1]));
-			newNormalList.set(f[2],normalList.get(fn[2]));
+			int normalIndex = face.getNormInd1();
+			int vertIndex = face.getVertInd1();			
+			Vert3 normal1 = normalList.get(normalIndex);
+			dummyList.set(vertIndex, normal1);
+					
 			
-			//System.out.println(newNormalList.get(f[0]));
+				normalIndex = nfaceList.get(i).getNormInd2();
+				vertIndex = face.getVertInd2();				
+				Vert3 normal2 = normalList.get(normalIndex);
+				dummyList.set(vertIndex,normal2);
+				
+				normalIndex = nfaceList.get(i).getNormInd3();
+				vertIndex = face.getVertInd3();
+				Vert3 normal3 = normalList.get(normalIndex);
+				dummyList.set(vertIndex,normal3);
 		}
-		
-		normalBuffer.rewind();
-		for(Vert3 v: newNormalList){
+				
+		/*
+		 * Übertragen der DummyListe in den NormalBuffer
+		 */
+		for(Vert3 v: dummyList){
 			normalBuffer.put(v.getVert());			
 		}		
+		//Freigabe für GC
+		dummyList.clear();
 		
-//		for(int i = 0; i < normalBuffer.capacity(); i++){
-//			double foo = normalBuffer.get(i);
-//			System.out.println(i + " : " + foo);
-//		}
 		
-		for(int i = 0; i < indices.capacity(); i++){
-			int foo = indices.get(i);
-			//System.out.println(i + " : " + foo);
+		/*
+		 * Texcoords übertragen - TODO! nicht implementiert bisher werden nur null Vert3 eingefügt
+		 */
+		if(texcoordList.size() < vertexList.size() || texcoordList.size() == 0){
+			texcoordList.clear();
+			for(int i = 0; i < vertexList.size(); i++)
+				texcoordList.add(new Vert3());
 		}
+		
+		for(Vert3 v : texcoordList){
+			double a = v.getVertA();
+			double b = v.getVertB();
+			texcoordBuffer.put(a);
+			texcoordBuffer.put(b);
+		}
+		
+		
+		/*
+		 * Indicees
+		 */		
+		for(Facette f: nfaceList){
+			/*
+			 * Indizees eines Face eintragen
+			 */
+			indices.put(f.getVertInd1());
+			indices.put(f.getVertInd2());
+			indices.put(f.getVertInd3());
+		}
+		
 		
 		// Rewind all buffers
 		vertexBuffer.rewind();
 		normalBuffer.rewind();
-		//texcoordBuffer.rewind();
+		texcoordBuffer.rewind();
 		indices.rewind();
 
 		VBOVertices = BufferUtil.newIntBuffer(1);
@@ -168,59 +205,163 @@ public class Model {
 		gl.glBufferData(GL.GL_ARRAY_BUFFER, normalList.size() * 3 * BufferUtil.SIZEOF_DOUBLE, normalBuffer, GL.GL_STATIC_DRAW);
 
 		// Generate and bind the Texture Coordinates Buffer
-//		VBOTexcoords = BufferUtil.newIntBuffer(1);
-//		// Get a valid name
-//		gl.glGenBuffers(1, VBOTexcoords);
-//		// Bind the Buffer
-//		gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBOTexcoords.get(0));
-//		// Load the Data
-//		gl.glBufferData(GL.GL_ARRAY_BUFFER, texcoordList.size() * 3 * BufferUtil.SIZEOF_DOUBLE, texcoordBuffer, GL.GL_STATIC_DRAW);
+		VBOTexcoords = BufferUtil.newIntBuffer(1);
+		// Get a valid name
+		gl.glGenBuffers(1, VBOTexcoords);
+		// Bind the Buffer
+		gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBOTexcoords.get(0));
+		// Load the Data
+		gl.glBufferData(GL.GL_ARRAY_BUFFER, texcoordList.size() * 2 * BufferUtil.SIZEOF_DOUBLE, texcoordBuffer, GL.GL_STATIC_DRAW);
 		
 		VBOIndices = BufferUtil.newIntBuffer(1);
 		gl.glGenBuffers(1, VBOIndices);
 		gl.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, VBOIndices.get(0));
-		gl.glBufferData(GL.GL_ELEMENT_ARRAY_BUFFER,	faceList.size() * 3 * BufferUtil.SIZEOF_INT, indices, GL.GL_STATIC_DRAW);
+		gl.glBufferData(GL.GL_ELEMENT_ARRAY_BUFFER,	nfaceList.size() * 3 * BufferUtil.SIZEOF_INT, indices, GL.GL_STATIC_DRAW);
+		
+		if(ObjViewer.DEBUG){
+			printBuffer(vertexBuffer, " vertexBfr");
+			printBuffer(normalBuffer, " normalBuffer");
+			printBuffer(texcoordBuffer, " tex coordBfr");
+			printList(nfaceList, " face List ");
+			printBuffer(indices, " index Bfr ");
+		}
 		
 		
-//		gl.glGenBuffers(1, indices);
-//		gl.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, indices.get(0));
-//		gl.glBufferData(GL.GL_ELEMENT_ARRAY_BUFFER, faceList.size() * 3 * BufferUtil.SIZEOF_INT, indices, GL.GL_STATIC_DRAW);
-		
-		
-		/** GL_ARRAY_BUFFER
-				Das Puffer-Objekt wird zur Speicherung von Vertexarray-Daten benutzt.
-			GL_ELEMENT_ARRAY_BUFFER
-				Das Puffer-Objekt dient zur Speicherung von Indexwerten für Vertexarrays.
-		**/
-
-		
-		
-		/** glVertexPointer specifies the location and data format of an array of vertex coordinates to use when rendering.
-        size specifies the number of coordinates per vertex, and must be 2, 3, or 4.
-        type specifies the data type of each coordinate, and stride specifies the byte stride from one vertex to the next, allowing vertices and attributes
-        to be packed into a single array or stored in separate arrays
-		**/
-		
-//		gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBOVertices.get(0));
-//		gl.glVertexPointer(3, GL.GL_DOUBLE, 0, 0);
-//		
-////		gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBOTexcoords.get(0));
-////		gl.glTexCoordPointer(2, GL.GL_DOUBLE, 0, 0);
-//
-//		gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBONormals.get(0));
-//		gl.glNormalPointer(GL.GL_DOUBLE, 0, 0);
-//		
-//		gl.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, indices.get(0));
-		
+		this.debugPrintFaces();
 	}
+	
+	private void deprecated_buildVBOS(GL gl){
+				
+			vertexBuffer = BufferUtil.newDoubleBuffer(vertexList.size() * 3);
+			normalBuffer = BufferUtil.newDoubleBuffer(vertexList.size() * 3);
+			texcoordBuffer = BufferUtil.newDoubleBuffer(texcoordList.size() * 2);
+			
+			indices = BufferUtil.newIntBuffer(faceList.size() * 3);
+
+			// Build the vertex, normal and texture arrays
+			for (int i = 0; i < vertexList.size(); i++) {
+				double[] v = vertexList.get(i).getVert();
+				vertexBuffer.put(v);			
+				newNormalList.add(new Vert3(0, 0, 0));			
+			}
+			
+			//normalList padden mit Nullen - wird überschrieben
+			if(normalList.size() < vertexList.size()){
+				for(int i = normalList.size(); i < vertexList.size(); i++ ){
+					normalList.add(new Vert3(0,0,0));
+				}
+			}
+			
+			for (int i = 0; i < faceList.size(); i++) {
+				int[] f = faceList.get(i).getFaceVerts();
+				int[] fn = faceList.get(i).getFaceNormals();
+				indices.put(faceList.get(i).getFaceVerts());
+				
+				newNormalList.set(f[0],normalList.get(fn[0]));
+				newNormalList.set(f[1],normalList.get(fn[1]));
+				newNormalList.set(f[2],normalList.get(fn[2]));
+				
+				//System.out.println(newNormalList.get(f[0]));
+			}
+			
+			normalBuffer.rewind();
+			for(Vert3 v: newNormalList){
+				normalBuffer.put(v.getVert());			
+			}		
+			
+//			for(int i = 0; i < normalBuffer.capacity(); i++){
+//				double foo = normalBuffer.get(i);
+//				System.out.println(i + " : " + foo);
+//			}
+			
+			for(int i = 0; i < indices.capacity(); i++){
+				int foo = indices.get(i);
+				//System.out.println(i + " : " + foo);
+			}
+			
+			// Rewind all buffers
+			vertexBuffer.rewind();
+			normalBuffer.rewind();
+			//texcoordBuffer.rewind();
+			indices.rewind();
+
+			VBOVertices = BufferUtil.newIntBuffer(1);
+			// Get a valid name
+			gl.glGenBuffers(1, VBOVertices);
+			// Bind the Buffer
+			gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBOVertices.get(0));
+			// Load the Data
+			gl.glBufferData(GL.GL_ARRAY_BUFFER, vertexList.size() * 3 * BufferUtil.SIZEOF_DOUBLE, vertexBuffer, GL.GL_STATIC_DRAW);
+
+			// Generate and bind Normal Buffer
+			VBONormals = BufferUtil.newIntBuffer(1);
+			// Get a valid name
+			gl.glGenBuffers(1, VBONormals);
+			// Bind the Buffer
+			gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBONormals.get(0));
+			// Load the Data
+			gl.glBufferData(GL.GL_ARRAY_BUFFER, normalList.size() * 3 * BufferUtil.SIZEOF_DOUBLE, normalBuffer, GL.GL_STATIC_DRAW);
+
+			// Generate and bind the Texture Coordinates Buffer
+//			VBOTexcoords = BufferUtil.newIntBuffer(1);
+//			// Get a valid name
+//			gl.glGenBuffers(1, VBOTexcoords);
+//			// Bind the Buffer
+//			gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBOTexcoords.get(0));
+//			// Load the Data
+//			gl.glBufferData(GL.GL_ARRAY_BUFFER, texcoordList.size() * 3 * BufferUtil.SIZEOF_DOUBLE, texcoordBuffer, GL.GL_STATIC_DRAW);
+			
+			VBOIndices = BufferUtil.newIntBuffer(1);
+			gl.glGenBuffers(1, VBOIndices);
+			gl.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, VBOIndices.get(0));
+			gl.glBufferData(GL.GL_ELEMENT_ARRAY_BUFFER,	faceList.size() * 3 * BufferUtil.SIZEOF_INT, indices, GL.GL_STATIC_DRAW);
+			
+			
+//			gl.glGenBuffers(1, indices);
+//			gl.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, indices.get(0));
+//			gl.glBufferData(GL.GL_ELEMENT_ARRAY_BUFFER, faceList.size() * 3 * BufferUtil.SIZEOF_INT, indices, GL.GL_STATIC_DRAW);
+			
+			
+			/** GL_ARRAY_BUFFER
+					Das Puffer-Objekt wird zur Speicherung von Vertexarray-Daten benutzt.
+				GL_ELEMENT_ARRAY_BUFFER
+					Das Puffer-Objekt dient zur Speicherung von Indexwerten für Vertexarrays.
+			**/
+
+			
+			
+			/** glVertexPointer specifies the location and data format of an array of vertex coordinates to use when rendering.
+	        size specifies the number of coordinates per vertex, and must be 2, 3, or 4.
+	        type specifies the data type of each coordinate, and stride specifies the byte stride from one vertex to the next, allowing vertices and attributes
+	        to be packed into a single array or stored in separate arrays
+			**/
+			
+//			gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBOVertices.get(0));
+//			gl.glVertexPointer(3, GL.GL_DOUBLE, 0, 0);
+//			
+//			gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBOTexcoords.get(0));
+//			gl.glTexCoordPointer(2, GL.GL_DOUBLE, 0, 0);
+	//
+//			gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBONormals.get(0));
+//			gl.glNormalPointer(GL.GL_DOUBLE, 0, 0);
+//			
+//			gl.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, indices.get(0));
+			
+		
+			if(ObjViewer.DEBUG){
+				printBuffer(vertexBuffer, " vertexBfr");
+				printBuffer(normalBuffer, " normalBuffer");
+				printBuffer(texcoordBuffer, " tex coordBfr");
+				printList(faceList, " face List ");
+				printBuffer(indices, " index Bfr ");
+			}
+	}
+	
 
 	private void loadModel(String name) {
-		Vert3 v1 = new Vert3(2,3,4);
-		Vert3 v2 = new Vert3(2,2,2);
-		Vert3 v3 = Vert3.multiply(v1, v2);
-		v3.printVert();
-		
+				
 		String filename = name + ".obj";
+		
 		try {
 			System.out.println("Loading model from " + filename + " ...");
 			BufferedReader br = new BufferedReader(new FileReader(filename));
@@ -232,10 +373,79 @@ public class Model {
 			System.out.println(e.getMessage());
 			System.exit(1);
 		}
-		
-		
+				
 	}
 
+		
+	/**
+	 * @author David Cornette
+	 *
+	 */
+	public void faceRegExpDeterm(String line){
+			
+		
+		String tc1s = fm.group(2);
+		String tc2s = fm.group(5);
+		String tc3s = fm.group(8);
+		String tc4s = fm.group(11);
+					
+		boolean hastexcoords = ((!tc1s.equals("")) && (!tc2s.equals("")) && (!tc3s.equals("")) && ((tc4s == null) || (!tc4s.equals(""))));
+		
+
+		String n1s = fm.group(3);
+		String n2s = fm.group(6);
+		String n3s = fm.group(9);
+		String n4s = fm.group(12);
+		
+		boolean hasnormals = ((!n1s.equals("")) && (!n2s.equals("")) && (!n3s.equals("")) && ((n4s == null) || (!n4s.equals(""))));
+		
+		int vert1 = Integer.parseInt(fm.group(1));
+		int vert2 = Integer.parseInt(fm.group(4));
+		int vert3 = Integer.parseInt(fm.group(7));
+		int vert4=0;
+		
+		if (fm.group(11) != null) {
+			vert4 = Integer.parseInt(fm.group(10));
+		}
+		
+		int tc1=0, tc2=0, tc3=0, tc4=0;
+		if (hastexcoords) {
+			tc1 = Integer.parseInt(tc1s);
+			tc2 = Integer.parseInt(tc2s);
+			tc3 = Integer.parseInt(tc3s);
+			if (tc4s != null) {
+				tc4 = Integer.parseInt(tc4s);
+			}
+		}
+		
+		int n1=0, n2=0, n3=0, n4=0;
+		if (hasnormals) {
+			n1 = Integer.parseInt(n1s);
+			n2 = Integer.parseInt(n2s);
+			n3 = Integer.parseInt(n3s);
+			if (n4s != null) {
+				n4 = Integer.parseInt(n4s);
+			}
+		}
+		
+		if(ObjViewer.DEBUG){
+			//System.out.println(line);
+			System.out.println("Normalenindizes: " + n1 + " " + n2 + " " + n3);
+			System.out.println("Vertexindizes: " + vert1 + " " + vert2 + " " + vert3);
+			System.out.println("TexKoordinatenindizes: " + tc1 + " " + tc2 + " " + tc3);
+		}
+		
+		int[] normInds = { n1,n2,n3};
+		int[] texInds = {tc1,tc2,tc3};
+		int[] vertInds = {vert1,vert2,vert3};
+		
+		Facette f = new Facette(normInds, texInds, vertInds);	
+		
+		nfaceList.add(f);
+		
+	}
+	
+	
 	private void readModel(BufferedReader br)
 	// parse the OBJ file line-by-line
 	{
@@ -250,7 +460,6 @@ public class Model {
 				lineNum++;
 				if (line.length() > 0) {
 					line = line.trim();
-
 					if (line.startsWith("v ")) { // vertex
 						extractVert(line);
 					} else if (line.startsWith("vt")) { // tex-coord
@@ -260,7 +469,10 @@ public class Model {
 						extractNormal(line);
 					else if (line.startsWith("f ")) { // face
 						extractFace(line);
-						numFaces++;
+						fm = fpat.matcher(line);
+						if(fm.find())
+							faceRegExpDeterm(line);
+												
 					} else if (line.startsWith("#")) // comment line
 						System.out.println("comment: " + line);
 					else
@@ -280,7 +492,12 @@ public class Model {
 		if (normalList.size() == 0)
 			computeNormals();
 
-		System.out.println("file read");
+		if(ObjViewer.DEBUG){
+			System.out.println("file read");		
+			System.out.println("\nvar numFaces: " + numFaces);
+			System.out.println("old numFaces: " + faceList.size());
+			System.out.println("new numFaces: " + nfaceList.size());
+		}
 	}
 
 
@@ -298,7 +515,6 @@ public class Model {
 		} catch (NumberFormatException e) {
 			System.out.println(e.getMessage());
 		}
-
 	}
 
 	private void extractNormal(String line) {
@@ -321,6 +537,10 @@ public class Model {
 		texcoordList.add(new Vert3(0,0,0));
 	}
 
+	/**
+	 * deprecated wird ersetzt durch RegExp Methode
+	 * @param line
+	 */
 	private void extractFace(String line) {
 		StringTokenizer blank_tokens = new StringTokenizer(line, " ");
 
@@ -458,7 +678,61 @@ public class Model {
 			}
 				
 		}
+		
+		
 
 		
+	}
+	
+	/*
+	 * DEBUGING METHODS
+	 */
+	
+	public static void printBuffer(DoubleBuffer db, String name){
+		if(name == null)
+			name = "init";
+		
+		System.out.println("Buffer" + name + " wird ausgegeben");
+		
+		for(int i= 0; i < db.capacity(); i++){
+			System.out.print(" " + db.get(i));
+			if((i+1)%3 == 0)
+				System.out.print(" | ");
+		}
+		System.out.println(" Capacity: " + db.capacity());
+	}
+	
+	public static void printBuffer(IntBuffer db, String name){
+		if(name == null)
+			name = "init";
+		
+		System.out.println("Buffer" + name + " wird ausgegeben");
+		
+		for(int i= 0; i < db.capacity(); i++){
+			System.out.print(" " + db.get(i));
+			if((i+1)%3 == 0)
+				System.out.print(" | ");
+		}
+		System.out.println(" Capacity: " + db.capacity());
+	}
+	
+	public static void printList(ArrayList al, String name){
+		if(name == null)
+			name = "init";
+		
+		System.out.println("Liste " + name + " wird ausgegeben");
+		
+		for(int i= 0; i < al.size(); i++){
+			System.out.print(" " + al.get(i));
+		}
+		System.out.println(" Capacity: " + al.size());
+	}
+	
+	public void debugPrintFaces(){
+		System.out.print("{");
+		for(Facette f : this.nfaceList){
+			System.out.print("{" + f.getVertInd1() + "," + f.getVertInd2() + "," + f.getVertInd3() + "}, ");
+		}
+		System.out.print("}");
 	}
 }

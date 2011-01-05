@@ -11,12 +11,19 @@ public class Vert3 {
 		this.c = c;
 	}
 	
+	/**
+	 * Legt einen Nullvektor (0,0,0) an
+	 */
 	public Vert3(){
 		this.a = 0;
 		this.b = 0;
 		this.c = 0;
 	}
 	
+	/**  
+	 * Gibt den ersten Wert a der Vektors (a,b,c) zurück
+	 * @return Double
+	 */
 	public double getVertA(){
 		return a;
 	}
@@ -29,6 +36,10 @@ public class Vert3 {
 		return c;
 	}
 	
+	/**
+	 * getVert() gibt einen Vektor als double array (größe 3) zurück
+	 * @return Double Array der Größe 3
+	 */
 	public double[] getVert(){
 		double[] vt = {a,b,c};
 		return vt;
@@ -85,6 +96,10 @@ public class Vert3 {
 	
 	public void printVert(){
 		System.out.println("Vert3: " + this.getVertA() + " " + this.getVertB() + " " + this.getVertC() + " " );
+	}
+	
+	public String toString(){
+		return "Vert3: " + this.getVertA() + " " + this.getVertB() + " " + this.getVertC() + " ";
 	}
 	
 
