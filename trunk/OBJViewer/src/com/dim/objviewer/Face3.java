@@ -17,6 +17,12 @@ public boolean isDecremented = false;
 		this.decrValuesByOne();
 	}
 	
+	public void printFace(){
+		System.out.println("Normalenindizes: " + a[2] + " " + b[2] + " " + c[2]);
+		System.out.println("Vertex Indizes: " + a[0] + " " + b[0] + " " + c[0]);
+		System.out.println("TexKoordinatenindizes: " + a[1] + " " + b[1] + " " + c[1]);		
+	}
+	
 	private void decrValuesByOne(){
 		a[0]--;
 		b[0]--;
