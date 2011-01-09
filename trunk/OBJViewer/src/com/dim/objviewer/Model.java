@@ -8,7 +8,11 @@ import java.nio.IntBuffer;
 import java.util.*;
 
 import javax.media.opengl.GL;
+
+import com.dim.halfEdgeStruct.Mesh;
 import com.sun.opengl.util.BufferUtil;
+import com.sun.xml.internal.messaging.saaj.packaging.mime.util.BEncoderStream;
+
 import java.util.regex.*;
 
 /*
@@ -23,6 +27,10 @@ public class Model {
 	// Buffer for the index array
 	private IntBuffer indices;
 	private DoubleBuffer texcoordBuffer;
+	
+	private Mesh mesh = null;
+	
+	
 	private int[] debug_arr;
 	public static boolean DEBUG = false;
 
@@ -48,11 +56,34 @@ public class Model {
 	private double maxSize;
 
 	public Model(GL gl) {
-		loadModel("models/cube");		
+		loadModel("models/b_cube");		
 				
 		//deprecated_buildVBOS(gl);
 		buildVBOS(gl);
 		//centerScale();
+		
+		if(nfaceList.size() > 0)
+			createHalfEdgeMesh();
+		else
+			System.out.println("FaceList unfilled - Mesh not created!");
+	}
+	
+	public void createHalfEdgeMesh(){
+		/*
+		 * Der Konstruktor von Mesh benötigt ein Array der Faces der Form { {1,2,3} , {2,3,4} ... etc }
+		 * in diese Form wird die Face-Liste gebracht und übergeben.
+		 */
+				
+		int[][] faceArray = new int[nfaceList.size()][3];
+		
+		for(int i  = 0; i < nfaceList.size(); i++){
+			faceArray[i][0] = nfaceList.get(i).getVertInd1();
+			faceArray[i][1] = nfaceList.get(i).getVertInd2();
+			faceArray[i][2] = nfaceList.get(i).getVertInd3();
+		}
+				
+		this.mesh = new Mesh(faceArray);
+		new Thread(mesh).start();
 	}
 
 	/*
@@ -81,10 +112,12 @@ public class Model {
 		}
 		
 		try {
-			gl.glDrawElements(GL.GL_TRIANGLES, faceList.size() * 3 , GL.GL_UNSIGNED_INT, 0); 
+			gl.glDrawElements(GL.GL_TRIANGLES, faceList.size() * 3 , GL.GL_UNSIGNED_INT, 0);			
 		} catch (Exception e) {			
 			System.out.println(e.getMessage());
-		}		
+		}	
+		
+		this.showHoles(gl);
 		
 		//unbind?!
 		gl.glBindBuffer(GL.GL_ARRAY_BUFFER, 0);
@@ -96,6 +129,33 @@ public class Model {
 		gl.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY);
 	}
 
+	public void showHoles(GL gl) {
+		
+		if(mesh == null)
+			return;
+		
+		if(!mesh.isReady())
+			return;
+		
+		int[] bedgePnts = mesh.getBorderEdgePoints();
+		if(bedgePnts.length <= 0){
+			System.out.println("Keine Randkanten!");
+			return;
+		}
+			
+		
+		gl.glColor3i(0, 0, 1);
+		gl.glLineWidth( 3.0f );
+		
+		gl.glBegin(GL.GL_LINES);
+			for(int i = 0; i < bedgePnts.length; i = i+2){
+				gl.glVertex3d(vertexList.get(i).getVertA(),vertexList.get(i).getVertB(),vertexList.get(i).getVertC());
+				gl.glVertex3d(vertexList.get(i+1).getVertA(),vertexList.get(i+1).getVertB(),vertexList.get(i+1).getVertC());
+			}
+		gl.glEnd();
+		
+		gl.glColor3i(1, 0, 0);
+	}
 	
 	private void buildVBOS(GL gl) {
 		
@@ -227,7 +287,7 @@ public class Model {
 		}
 		
 		
-		this.debugPrintFaces();
+		//this.debugPrintFaces();
 	}
 	
 	private void deprecated_buildVBOS(GL gl){
@@ -684,7 +744,7 @@ public class Model {
 		
 	}
 	
-	/*
+	/* ####################################################################################################
 	 * DEBUGING METHODS
 	 */
 	

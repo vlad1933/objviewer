@@ -45,7 +45,7 @@ public class MyKeyListener implements KeyListener {
 			ov.l -= 0.02f;
 			break;
 		case java.awt.event.KeyEvent.VK_SPACE:
-			//ov.shadingData.toggleWireframe();
+			ov.shadingData.toggleWireframe();
 			Model.DEBUG = true;
 			break;
 		case java.awt.event.KeyEvent.VK_S:

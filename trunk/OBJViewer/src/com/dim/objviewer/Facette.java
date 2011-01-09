@@ -123,5 +123,9 @@ public class Facette {
 		this.vertInd3 = vertInd3;
 	}
 	
+	public int[] getVertsAsArray(){
+		int[] verts = { this.vertInd1 , this.vertInd2, this.vertInd3 };
+		return verts;
+	}
 	
 }
