@@ -25,6 +25,7 @@ import java.nio.DoubleBuffer;
 import java.nio.IntBuffer;
 import java.util.StringTokenizer;
 
+import com.dim.halfEdgeStruct.Mesh;
 import com.sun.opengl.util.BufferUtil;
 import com.sun.opengl.util.GLUT;
 import com.sun.opengl.util.StreamUtil;
@@ -45,28 +46,6 @@ public class ObjViewer extends JFrame implements GLEventListener {
 
 	public int shaderprogram;
 	
-	/**
-	 * DEBUG STUFF
-	 */
-	public Vert3[] eck = { new Vert3(1.0,1.0,0.0),new Vert3(),new Vert3(2.0,1.0,0.0) };
-	/**
-	 * DEBUG STUFF END
-	 */
-
-	public void showEck(GLAutoDrawable drawable) {
-		GL gl = drawable.getGL();
-		gl.glLineWidth( 3.0f );
-	    gl.glColor3f(1, 0, 0);
-	      
-		gl.glBegin(GL.GL_LINE);
-		  gl.glVertex3d(eck[0].getVertA(), eck[0].getVertB(), eck[0].getVertC());
-		  gl.glVertex3d(eck[1].getVertA(), eck[1].getVertB(), eck[1].getVertC());
-		  gl.glVertex3d(eck[2].getVertA(), eck[2].getVertB(), eck[2].getVertC());
-		  gl.glVertex3d(eck[2].getVertA(), eck[2].getVertB(), eck[2].getVertC());
-		gl.glEnd();
-	    
-		
-	}
 	
 	
 	public ObjViewer() {
@@ -116,7 +95,7 @@ public class ObjViewer extends JFrame implements GLEventListener {
 		o = 0.0f;
 		l = 0.0f;
 		
-		this.initUI();
+		this.initUI(gl);
 //		try {
 //			cornette(drawable);
 //		} catch (IOException e) {
@@ -126,7 +105,7 @@ public class ObjViewer extends JFrame implements GLEventListener {
 		
 	}
 	
-	public final void initUI() {
+	public final void initUI(final GL gl) {
 
         JMenuBar menubar = new JMenuBar();
         
@@ -166,6 +145,24 @@ public class ObjViewer extends JFrame implements GLEventListener {
         fMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent event) {
             	shadingData.setShadingmode("flat");
+            }
+
+        });
+        
+        /*
+         * Color Borders
+         */        
+        JMenuItem bMenuItem = new JMenuItem("Show holes in Mesh");
+        bMenuItem.setMnemonic(KeyEvent.VK_H);
+        
+        bMenuItem.setToolTipText("Show holes in mesh");
+        
+        menu.add(bMenuItem);
+        
+        bMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent event) {
+            	System.out.println("show holes in Mesh");
+            	
             }
 
         });
@@ -405,7 +402,7 @@ public class ObjViewer extends JFrame implements GLEventListener {
 		/**
 		 * DEBUG!!
 		 */
-			this.showEck(drawable);
+			//this.showEck(drawable);
 		/**
 		 * DEBUG ZONE
 		 */
