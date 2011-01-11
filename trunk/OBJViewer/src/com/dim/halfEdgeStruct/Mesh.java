@@ -2,6 +2,8 @@ package com.dim.halfEdgeStruct;
 
 import java.util.ArrayList;
 
+import com.dim.objviewer.ObjViewer;
+
 public class Mesh implements Runnable{
 
 	private int[][] faceList;
@@ -148,11 +150,12 @@ public class Mesh implements Runnable{
 		
 		*/
 		
-		for(int x = 0; x < edgeList.size(); x++){
-			System.out.println(x + ": " + "edge: " + edgeList.get(x));			
+		if(false){
+			for(int x = 0; x < edgeList.size(); x++){
+				System.out.println(x + ": " + "edge: " + edgeList.get(x));			
+			}
+			System.out.println(edgeList.size());
 		}
-		System.out.println(edgeList.size());
-		
 		this.dataStructureReady = true;
 	}	
 	
@@ -214,7 +217,7 @@ public class Mesh implements Runnable{
 		for(int p: points){
 			pointsArr[i] = p;
 			i++;
-			System.out.print(p+",");
+			//System.out.print(p+",");
 		}
 		
 		

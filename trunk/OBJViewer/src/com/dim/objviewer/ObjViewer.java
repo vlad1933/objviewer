@@ -33,7 +33,7 @@ import com.sun.opengl.util.StreamUtil;
 public class ObjViewer extends JFrame implements GLEventListener {
 	private static final long serialVersionUID = 1L;
 
-	static boolean DEBUG = false;
+	public static boolean DEBUG = false;
 	// The house to display
 	private Model model;
 	
