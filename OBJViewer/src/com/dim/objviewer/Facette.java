@@ -128,4 +128,10 @@ public class Facette {
 		return verts;
 	}
 	
+	public void setNormIndex(int normIndex){
+		this.normInd1 = normIndex;
+		this.normInd2 = normIndex;
+		this.normInd3 = normIndex;
+	}
+	
 }
