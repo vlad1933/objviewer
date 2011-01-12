@@ -94,6 +94,40 @@ public class Vert3 {
 		return resultVert;
 	}
 	
+
+	public static Vert3 cross(Vert3 a, Vert3 b){
+		Vert3 normal = new Vert3();
+		normal.setVertA(a.getVertB() * b.getVertC() - a.getVertC() * b.getVertB());
+		normal.setVertB(a.getVertC() * b.getVertA() - a.getVertA() * b.getVertC());
+		normal.setVertC(a.getVertA() * b.getVertB() - a.getVertB() * b.getVertA());		
+		
+		return normal;
+	}
+	
+/*	// Normalize pIn vector into pOut
+	bool VectorNormalize (GLpoint *pIn, GLpoint *pOut)
+	{
+	   GLfloat len = (GLfloat)(sqrt(	sqr(pIn->x) + sqr(pIn->y) + sqr(pIn->z)));
+	   if (len)
+	   {
+	      pOut->x = pIn->x / len;
+	      pOut->y = pIn->y / len;
+	      pOut->z = pIn->z / len;
+	      return true;
+	   }
+	   return false;
+	}
+*/
+	public static Vert3 normalizeVector(Vert3 vert){
+		Double len = (Math.sqrt(
+				Math.sqrt(vert.getVertA()) + 
+				Math.sqrt(vert.getVertB()) + 
+				Math.sqrt(vert.getVertC())));
+		vert.setVert(vert.getVertA() / len, vert.getVertB() / len, vert.getVertC() / len);
+			
+		return vert;
+	}
+	
 	public void printVert(){
 		System.out.println("Vert3: " + this.getVertA() + " " + this.getVertB() + " " + this.getVertC() + " " );
 	}

@@ -16,7 +16,7 @@ import com.sun.xml.internal.messaging.saaj.packaging.mime.util.BEncoderStream;
 import java.util.regex.*;
 
 /*
- * Fourth Revision! 11JAn2011
+ * Fourth Revision! 12JAn2011
  * */
 
 public class Model {
@@ -45,15 +45,15 @@ public class Model {
 	private ArrayList<Vert3> texcoordList = new ArrayList<Vert3>();
 	
 
-	public Pattern fpat = Pattern
-			.compile("^f\\s+(\\d+)(?:/(\\d*))?(?:/(\\d+))?\\s+(\\d+)(?:/(\\d*))?(?:/(\\d+))?\\s+(\\d+)(?:/(\\d*))?(?:/(\\d+))?(?:\\s+(\\d+)(?:/(\\d*))?(?:/(\\d+))?)?$");
+	public Pattern fpat = Pattern.compile("^f\\s+(\\d+)(?:/(\\d*))?(?:/(\\d+))?\\s+(\\d+)(?:/(\\d*))?(?:/(\\d+))?\\s+(\\d+)(?:/(\\d*))?(?:/(\\d+))?(?:\\s+(\\d+)(?:/(\\d*))?(?:/(\\d+))?)?$");
+	public Pattern f2pat = Pattern.compile("^f\\s+(\\d+)\\s(\\d+)\\s(\\d+)");
 	public Matcher fm;
 
 	private ModelDimensions modeldims = new ModelDimensions();
 	private double maxSize;
 
 	public Model(GL gl) {
-		loadModel("models/cube");
+		loadModel("models/cow");
 		buildVBOS(gl);
 		//centerScale();
 
@@ -108,10 +108,9 @@ public class Model {
 		if (DEBUG) {
 			printBuffer(VBOIndices, "indizee VBO");
 		}
-
+		
 		try {
-			gl.glDrawElements(GL.GL_TRIANGLES, faceList.size() * 3,
-					GL.GL_UNSIGNED_INT, 0);
+			gl.glDrawElements(GL.GL_TRIANGLES, nfaceList.size() * 3, GL.GL_UNSIGNED_INT, 0);
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
 		}
@@ -164,7 +163,7 @@ public class Model {
 
 		vertexBuffer = BufferUtil.newDoubleBuffer(vertexList.size() * 3);
 		normalBuffer = BufferUtil.newDoubleBuffer(vertexList.size() * 3);
-		// die size ist hier strittig! sollte eher texcoord.size() * 2 sein
+	
 		texcoordBuffer = BufferUtil.newDoubleBuffer(vertexList.size() * 2);
 		indices = BufferUtil.newIntBuffer(nfaceList.size() * 3);
 
@@ -173,7 +172,7 @@ public class Model {
 			vertexBuffer.put(vert.getVert());
 		}
 
-		/**
+		/*
 		 * Dummylist wird verwendet da der Umgang mit ArrayList einfacher ist
 		 * (im Speziellen das nicht sequentielle Füllen) als mit dem Buffer Im
 		 * Anschluss wird die Liste in den normalBuffer übertragen und für den
@@ -201,7 +200,7 @@ public class Model {
 			normalIndex = nfaceList.get(i).getNormInd3();
 			vertIndex = face.getVertInd3();
 			Vert3 normal3 = normalList.get(normalIndex);
-			dummyList.set(vertIndex, normal3);
+			dummyList.set(vertIndex, normal3);			
 		}
 
 		/*
@@ -313,11 +312,29 @@ public class Model {
 	}
 
 	/**
-	 * @author David Cornette
+	 * @author David Cornette moded by D. Martens
 	 * 
 	 */
 	public void faceRegExpDeterm(String line) {
 
+		Matcher fm2 = f2pat.matcher(line);
+		
+		/*Wenn das Face nur Indizees enthält -> f 1 2 3
+		 *die Methode v. Cornette versagt sonst an dieser Stelle*/
+		if (fm2.find()){
+			int v1 = Integer.parseInt(fm2.group(1));
+			int v2 = Integer.parseInt(fm2.group(2));
+			int v3 = Integer.parseInt(fm2.group(3));
+			int[] vertsArray = {v1,v2,v3};
+			int[] nullArray = {1,1,1}; //weil indizee im Konstruktor dekrementiert wird!
+						
+			nfaceList.add(new Facette(nullArray,nullArray , vertsArray));
+			return;
+		}
+			
+		
+		
+		String tcs0 = fm.group(1);
 		String tc1s = fm.group(2);
 		String tc2s = fm.group(5);
 		String tc3s = fm.group(8);
@@ -430,7 +447,7 @@ public class Model {
 
 		if (ObjViewer.DEBUG) {
 			System.out.println("file read");
-			System.out.println("\nvar numFaces: " + numFaces);
+			System.out.println("var numFaces: " + numFaces);
 			System.out.println("old numFaces: " + faceList.size());
 			System.out.println("new numFaces: " + nfaceList.size());
 		}
@@ -504,7 +521,11 @@ public class Model {
 	} // end of centerScale()
 
 	private void computeNormals() {
-
+//		for(Vert3 v : vertexList){
+//			normalList.add(new Vert3());
+//		}
+//		
+//		return;
 		// Will man anhand von Dreiecksdaten Normalen erzeugen:
 		// Das Vektor-Kreuzprodukt. Um die Normale der Fläche beschrieben durch
 		// die 3 Ecken V1, V2, V3 zu bekommen, braucht man nur zu rechnen:
@@ -530,7 +551,9 @@ public class Model {
 			v2 = vertexList.get(vertIndices[1]);
 			v3 = vertexList.get(vertIndices[2]);
 
-			norm = Vert3.multiply((Vert3.minus(v1, v2)), (Vert3.minus(v2, v3)));
+			norm = Vert3.cross((Vert3.minus(v2, v1)), (Vert3.minus(v3, v1)));
+			//norm = Vert3.cross((Vert3.multiply(v2, v3)), (Vert3.multiply(v2, v1)));
+			//norm = Vert3.normalizeVector(norm);
 
 			nfaceList.get(i).setNormIndex(i);
 
@@ -539,11 +562,11 @@ public class Model {
 			normalList.add(norm);
 			normalList.add(norm);
 			
-
+		 
 		}
 		
 		System.out.println("Normals Computed!");
-
+		 
 	}
 
 	/*
