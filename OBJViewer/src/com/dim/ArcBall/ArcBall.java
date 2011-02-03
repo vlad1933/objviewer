@@ -61,7 +61,6 @@ public class ArcBall {
     // Mouse down
     public void click(Point NewPt) {
         mapToSphere(NewPt, this.StVec);
-
     }
 
     // Mouse drag, calculate rotation
@@ -86,7 +85,7 @@ public class ArcBall {
                 NewRot.setZ(Perp.z);
                 // In the quaternion values, w is cosine (theta / 2), 
                 // where theta is rotation angle
-                NewRot.setW(Vert3f.dot(StVec, EnVec));
+                NewRot.setW(0.3f*Vert3f.dot(StVec, EnVec)); //Faktor 0.3 beschleunigt die Bewegung etwas
             } else                                    //if its zero
             {
                 // The begin and end vectors coincide, so return an identity transform
@@ -99,25 +98,3 @@ public class ArcBall {
     }
 
 }
-
-//public class ArcBall {
-//	//MousePt.X  =  ((MousePt.X / ((Width  – 1) / 2)) – 1);
-//	//MousePt.Y  = -((MousePt.Y / ((Height – 1) / 2)) – 1);
-//
-//	
-//	/**The ArcBall is instantiated using the following constructor. 
-//	 * NewWidth and NewHeight are essentially the width and height of the window.	 * 
-//	 */
-//	public ArcBall(float newWidth, float newHeigt){
-//		
-//	}
-//	
-//	/** When the user clicks the mouse, the start vector is calculated based on where the click occurred.
-//	 * 
-//	 */
-//	public void click(Tuple2f_t Tuple2f_tT){
-//		
-//	}
-//	
-//	
-//}
