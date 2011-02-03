@@ -40,13 +40,14 @@ public class ObjViewer extends JFrame implements GLEventListener {
 	public float WINWIDTH = 1000.0f;
 	public float WINHEIGHT = 800.0f;
 	public static boolean DEBUG = false;
-	// The house to display
+	
 	private Model model;
 	
 	public RotationData rotData;
 	public Shading shadingData;
 
 	public float scaling = 0.01f;
+	public float lastScale = -1.0f;
 	public float o = 0.0f;
 	public float l = 0.0f;
 
@@ -78,6 +79,8 @@ public class ObjViewer extends JFrame implements GLEventListener {
 		 * implement the GLEventListener interface
 		 */
 		GLCanvas canvas = new GLCanvas();
+		canvas.getContext().makeCurrent();
+		
 		rotData = new RotationData(10.0f);
 		shadingData = new Shading();
 
@@ -85,6 +88,7 @@ public class ObjViewer extends JFrame implements GLEventListener {
 		canvas.addKeyListener(new MyKeyListener(this));
 		canvas.addMouseListener(new MyMouseListener(rotData,this));
 		canvas.addMouseMotionListener(new MyMouseMotionListener(rotData,this));
+		canvas.addMouseWheelListener(new MyMouseWheelListener(this));
 
 		this.add(canvas, BorderLayout.CENTER);
 
@@ -111,7 +115,7 @@ public class ObjViewer extends JFrame implements GLEventListener {
 		// Enable color material
 		gl.glEnable(GL.GL_COLOR_MATERIAL);
 
-		model = new Model(gl);
+		model = new Model(gl,"models/bunny");
 	
 		scaling = 1.0f;
 		o = 0.0f;
@@ -139,9 +143,9 @@ public class ObjViewer extends JFrame implements GLEventListener {
         // Set Perspective Calculations To Most Accurate
         gl.glHint(GL.GL_PERSPECTIVE_CORRECTION_HINT, GL.GL_NICEST);                
 
-        quadratic = glu.gluNewQuadric(); // Create A Pointer To The Quadric Object
-        glu.gluQuadricNormals(quadratic, GLU.GLU_SMOOTH); // Create Smooth Normals
-        glu.gluQuadricTexture(quadratic, true); // Create Texture Coords
+        //quadratic = glu.gluNewQuadric(); // Create A Pointer To The Quadric Object
+        //glu.gluQuadricNormals(quadratic, GLU.GLU_SMOOTH); // Create Smooth Normals
+        //glu.gluQuadricTexture(quadratic, true); // Create Texture Coords
         
         
 	}
@@ -171,6 +175,11 @@ public class ObjViewer extends JFrame implements GLEventListener {
             ThisRot.setRotation(ThisQuat);  // Convert Quaternion Into Matrix3fT
             ThisRot.mul( ThisRot, LastRot); // Accumulate Last Rotation Into This One
         }
+    }
+    
+    void dragScale(Point MousePt){
+    	System.out.println(MousePt);
+    	this.scaling = (MousePt.x / 100);
     }
     
     //######################## END ARCBALL METHODS ########################################
@@ -222,6 +231,7 @@ public class ObjViewer extends JFrame implements GLEventListener {
          * Color Borders
          */        
         JMenuItem bMenuItem = new JMenuItem("Show holes in Mesh");
+        //JMenuItem bMenuItem = new JMenuItem("Load Cube");
         bMenuItem.setMnemonic(KeyEvent.VK_H);
         
         bMenuItem.setToolTipText("Show holes in mesh");
@@ -269,6 +279,8 @@ public class ObjViewer extends JFrame implements GLEventListener {
         setSize((int)WINWIDTH, (int)WINHEIGHT);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
+        
+        
     }
 	
 	
@@ -500,7 +512,7 @@ public class ObjViewer extends JFrame implements GLEventListener {
 			gl.glRotatef(rotData.rotz, 0.0f, 0.0f, 1.0f);
 		}
 				
-		gl.glScalef(scaling, scaling, scaling); // Wie kann ich Normalen
+		
 		gl.glTranslatef(o, l, 0.0f);
 		*/
 				
@@ -512,7 +524,9 @@ public class ObjViewer extends JFrame implements GLEventListener {
 			gl.glEnable(GL.GL_LIGHTING);
 			gl.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL);
 		}
-
+		
+		
+		
 		if (shadingData.isShadingEnabled()) {
 			gl.glShadeModel(shadingData.getShadingmode());
 		}
@@ -531,27 +545,21 @@ public class ObjViewer extends JFrame implements GLEventListener {
 
         gl.glPushMatrix();                  // NEW: Prepare Dynamic Transform
         gl.glMultMatrixf(matrix, 0);        // NEW: Apply Dynamic Transform
-        gl.glColor3f(0.75f, 0.75f, 1.0f);
-        
+                
         gl.glPopMatrix();                   // NEW: Unapply Dynamic Transform
 
         gl.glLoadIdentity();                // Reset The Current Modelview Matrix
         
-        // Move Right 1.5 Units And Into The Screen 7.0
-        //gl.glTranslatef(1.5f, 0.0f, -6.0f);  
-
         gl.glPushMatrix();                  // NEW: Prepare Dynamic Transform
         gl.glMultMatrixf(matrix, 0);        // NEW: Apply Dynamic Transform
         gl.glColor3f(1.0f, 0.75f, 0.75f);
         
         //glu.gluSphere(quadratic, 1.3f, 20, 20);
+        gl.glScalef(scaling, scaling, scaling);
         model.draw(gl);
         gl.glPopMatrix();                   // NEW: Unapply Dynamic Transform
 
-        gl.glFlush();                       // Flush The GL Rendering Pipeline
-
-		// System.out.print("\nin display");
-
+        gl.glFlush();                       // Flush The GL Rendering Pipeline        
 	}
 
 	public void reshape(GLAutoDrawable drawable, int x, int y, int width,
