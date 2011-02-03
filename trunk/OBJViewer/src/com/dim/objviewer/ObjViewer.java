@@ -7,6 +7,7 @@
  */
 package com.dim.objviewer;
 
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -14,6 +15,7 @@ import java.awt.event.KeyEvent;
 
 import javax.media.opengl.*;
 import javax.media.opengl.glu.GLU;
+import javax.media.opengl.glu.GLUquadric;
 import javax.swing.*;
 
 import java.io.BufferedReader;
@@ -25,6 +27,7 @@ import java.nio.DoubleBuffer;
 import java.nio.IntBuffer;
 import java.util.StringTokenizer;
 
+import com.dim.ArcBall.*;
 import com.dim.halfEdgeStruct.Mesh;
 import com.sun.opengl.util.BufferUtil;
 import com.sun.opengl.util.GLUT;
@@ -33,6 +36,9 @@ import com.sun.opengl.util.StreamUtil;
 public class ObjViewer extends JFrame implements GLEventListener {
 	private static final long serialVersionUID = 1L;
 
+	
+	public float WINWIDTH = 1000.0f;
+	public float WINHEIGHT = 800.0f;
 	public static boolean DEBUG = false;
 	// The house to display
 	private Model model;
@@ -46,7 +52,23 @@ public class ObjViewer extends JFrame implements GLEventListener {
 
 	public int shaderprogram;
 	
-	
+	/*
+	 * ARcBALL TESTING!
+	 * */
+	// User Defined Variables
+    private GLUquadric quadratic;   // Used For Our Quadric
+    private GLU glu = new GLU();
+
+    private Matrix4f LastRot = new Matrix4f();
+    private Matrix4f ThisRot = new Matrix4f();
+    private final Object matrixLock = new Object();
+    private float[] matrix = new float[16];
+
+    public ArcBall arcBall = new ArcBall(this.WINWIDTH, this.WINHEIGHT);  // NEW: ArcBall Instance
+    
+    /*
+     * ARCBALL TESTING END
+     */
 	
 	public ObjViewer() {
 		super("OpenGL JOGL VIEWER");
@@ -61,8 +83,8 @@ public class ObjViewer extends JFrame implements GLEventListener {
 
 		canvas.addGLEventListener(this);
 		canvas.addKeyListener(new MyKeyListener(this));
-		canvas.addMouseListener(new MyMouseListener(rotData));
-		canvas.addMouseMotionListener(new MyMouseMotionListener(rotData));
+		canvas.addMouseListener(new MyMouseListener(rotData,this));
+		canvas.addMouseMotionListener(new MyMouseMotionListener(rotData,this));
 
 		this.add(canvas, BorderLayout.CENTER);
 
@@ -103,8 +125,55 @@ public class ObjViewer extends JFrame implements GLEventListener {
 //			e.printStackTrace();
 //		}
 		
+		/*
+		 * ArcBALL STUFF 
+		 */
+		
+		// Start Of User Initialization
+        LastRot.setIdentity();                                // Reset Rotation
+        ThisRot.setIdentity();                                // Reset Rotation
+        ThisRot.get(matrix);
+        
+        gl.glDepthFunc(GL.GL_LEQUAL);  // The Type Of Depth Testing (Less Or Equal)
+        gl.glEnable(GL.GL_DEPTH_TEST);                        // Enable Depth Testing
+        // Set Perspective Calculations To Most Accurate
+        gl.glHint(GL.GL_PERSPECTIVE_CORRECTION_HINT, GL.GL_NICEST);                
+
+        quadratic = glu.gluNewQuadric(); // Create A Pointer To The Quadric Object
+        glu.gluQuadricNormals(quadratic, GLU.GLU_SMOOTH); // Create Smooth Normals
+        glu.gluQuadricTexture(quadratic, true); // Create Texture Coords
+        
+        
 	}
 	
+	//######################## ARCBALL METHODS ########################################
+    void reset() {
+        synchronized(matrixLock) {
+            LastRot.setIdentity();   // Reset Rotation
+            ThisRot.setIdentity();   // Reset Rotation
+        }
+    }
+
+    void startDrag( Point MousePt ) {
+        synchronized(matrixLock) {
+            LastRot.set( ThisRot );  // Set Last Static Rotation To Last Dynamic One
+        }
+        arcBall.click( MousePt );    // Update Start Vector And Prepare For Dragging
+    }
+
+    void drag( Point MousePt )       // Perform Motion Updates Here
+    {
+        Quat4f_t ThisQuat = new Quat4f_t();
+
+        // Update End Vector And Get Rotation As Quaternion
+        arcBall.drag( MousePt, ThisQuat); 
+        synchronized(matrixLock) {
+            ThisRot.setRotation(ThisQuat);  // Convert Quaternion Into Matrix3fT
+            ThisRot.mul( ThisRot, LastRot); // Accumulate Last Rotation Into This One
+        }
+    }
+    
+    //######################## END ARCBALL METHODS ########################################
 	public final void initUI(final GL gl) {
 
         JMenuBar menubar = new JMenuBar();
@@ -197,11 +266,13 @@ public class ObjViewer extends JFrame implements GLEventListener {
         setJMenuBar(menubar);
 
         setTitle("Simple menu");
-        setSize(1000, 800);
+        setSize((int)WINWIDTH, (int)WINHEIGHT);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
     }
 	
+	
+	//######################## SHADER STUFF ###############################################
 	public void cornette(GLAutoDrawable drawable) throws IOException{
 		GL gl = drawable.getGL();
 		
@@ -378,20 +449,27 @@ public class ObjViewer extends JFrame implements GLEventListener {
 		return shaderSrc;
 	}
 
+	//######################## END SHADER STUFF ###############################################
+	
 	public void display(GLAutoDrawable drawable) {
 
 		GL gl = drawable.getGL();
 		GLU glu = new GLU();
 		GLUT glut = new GLUT();
 		
-		
+		/*
+		 * ARCBALL STUFF
+		 */
+		synchronized(matrixLock) {
+            ThisRot.get(matrix);
+        }
+			
 
 		// System.out.print("\ngl instanz " + gl.toString());
 
 		// gl.glClear(GL.GL_COLOR_BUFFER_BIT); //Leert die im Parameter
 		// festgelegten Buffer, indem sie mit einen Leerwert gefüllt werden
 		gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
-
 		gl.glMatrixMode(GL.GL_MODELVIEW); // Legt fest, welche Matrix gerade
 		// aktiv ist
 		gl.glLoadIdentity(); // Die Funktion glLoadIdentity ersetzt die aktuelle
@@ -411,6 +489,7 @@ public class ObjViewer extends JFrame implements GLEventListener {
 
 		// Mouse Interaction
 		glu.gluLookAt(0, 0, 3, 0, 0, 0, 0, 1, 0);
+		/* für arcball auskommentioert
 		gl.glRotated(rotData.viewRotX, 1, 0, 0);
 		gl.glRotated(rotData.viewRotY, 0, 1, 0);
 
@@ -420,12 +499,11 @@ public class ObjViewer extends JFrame implements GLEventListener {
 			gl.glRotatef(rotData.roty, 0.0f, 1.0f, 0.0f);
 			gl.glRotatef(rotData.rotz, 0.0f, 0.0f, 1.0f);
 		}
-
+				
 		gl.glScalef(scaling, scaling, scaling); // Wie kann ich Normalen
-		// normalisieren? Muss ich
-		// überhaupt? Nach Skalieren
-		// sollten normalen schrott sein
 		gl.glTranslatef(o, l, 0.0f);
+		*/
+				
 
 		if (shadingData.isWireframe()) {
 			gl.glDisable(GL.GL_LIGHTING);
@@ -443,7 +521,34 @@ public class ObjViewer extends JFrame implements GLEventListener {
 
 		//gl.glUseProgram(shaderprogram);
 		
-		model.draw(gl);
+		
+		
+		/*
+		 * arcball stuff
+		 */
+		// Move Left 1.5 Units And Into The Screen 6.0
+        gl.glTranslatef(-1.5f, 0.0f, -6.0f);  
+
+        gl.glPushMatrix();                  // NEW: Prepare Dynamic Transform
+        gl.glMultMatrixf(matrix, 0);        // NEW: Apply Dynamic Transform
+        gl.glColor3f(0.75f, 0.75f, 1.0f);
+        
+        gl.glPopMatrix();                   // NEW: Unapply Dynamic Transform
+
+        gl.glLoadIdentity();                // Reset The Current Modelview Matrix
+        
+        // Move Right 1.5 Units And Into The Screen 7.0
+        //gl.glTranslatef(1.5f, 0.0f, -6.0f);  
+
+        gl.glPushMatrix();                  // NEW: Prepare Dynamic Transform
+        gl.glMultMatrixf(matrix, 0);        // NEW: Apply Dynamic Transform
+        gl.glColor3f(1.0f, 0.75f, 0.75f);
+        
+        //glu.gluSphere(quadratic, 1.3f, 20, 20);
+        model.draw(gl);
+        gl.glPopMatrix();                   // NEW: Unapply Dynamic Transform
+
+        gl.glFlush();                       // Flush The GL Rendering Pipeline
 
 		// System.out.print("\nin display");
 
@@ -461,6 +566,8 @@ public class ObjViewer extends JFrame implements GLEventListener {
 		gl.glMatrixMode(GL.GL_PROJECTION);
 		gl.glLoadIdentity();
 		gl.glOrtho(-2, 2, -2, 2, -10, 10);
+		
+		arcBall.setBounds((float) width, (float) height);
 
 	}
 
@@ -470,7 +577,7 @@ public class ObjViewer extends JFrame implements GLEventListener {
 
 	public static void main(String[] args) {
 		Frame frame = new ObjViewer();		
-		frame.setBounds(0, 0, 400, 400);
+		frame.setBounds(0, 0, 1000, 800);
 		frame.setVisible(true);
 	}
 

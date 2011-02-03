@@ -53,7 +53,7 @@ public class Model {
 	private double maxSize;
 
 	public Model(GL gl) {
-		loadModel("models/cow");
+		loadModel("models/cube");
 		buildVBOS(gl);
 		//centerScale();
 
