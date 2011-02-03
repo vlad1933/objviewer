@@ -52,15 +52,19 @@ public class Model {
 	private ModelDimensions modeldims = new ModelDimensions();
 	private double maxSize;
 
-	public Model(GL gl) {
-		loadModel("models/cube");
-		buildVBOS(gl);
+	public Model(GL gl, String path) {
+		loadModel(path);
 		//centerScale();
+		buildVBOS(gl);
+		
 
-		if (nfaceList.size() > 0)
-			System.out.println("mesh..");//createHalfEdgeMesh();
-		else
+		if (nfaceList.size() > 0){
+			System.out.println("mesh..");
+			//createHalfEdgeMesh();
+		}
+		else{
 			System.out.println("FaceList unfilled - Mesh not created!");
+		}
 	}
 
 	public void createHalfEdgeMesh() {
@@ -82,9 +86,7 @@ public class Model {
 		new Thread(mesh).start();
 	}
 
-	/*
-	 * Draw the house.
-	 */
+	
 	public void draw(GL gl) {
 		// Enable vertex arrays
 		gl.glEnableClientState(GL.GL_VERTEX_ARRAY);
@@ -142,7 +144,7 @@ public class Model {
 			return;
 		}
 
-		gl.glColor3i(1, 0, 0);
+		gl.glColor3f(1.0f, 0.0f, 0.0f);
 		gl.glLineWidth(3.0f);
 
 		gl.glBegin(GL.GL_LINES);
@@ -156,7 +158,7 @@ public class Model {
 		}
 		gl.glEnd();
 
-		gl.glColor3i(0, 0, 0);
+		gl.glColor3f(0.0f, 0.0f, 0.0f);
 	}
 
 	private void buildVBOS(GL gl) {
