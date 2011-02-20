@@ -3,12 +3,16 @@ package com.dim.halfEdgeStruct;
 import java.util.ArrayList;
 
 import com.dim.objviewer.ObjViewer;
+import com.dim.objviewer.Vert3;
 
 public class Mesh implements Runnable{
 
 	private int[][] faceList;
-	private ArrayList<HE_edge> edgeList = new ArrayList<HE_edge>();		
+	//Edges
+	private ArrayList<HE_edge> edgeList = new ArrayList<HE_edge>();
+	//Points
 	private ArrayList<pList> PList = new ArrayList<pList>();
+	//
 	private ArrayList<Integer> ptrPList = new ArrayList<Integer>();
 	
 	private boolean dataStructureReady = false;
@@ -21,7 +25,7 @@ public class Mesh implements Runnable{
 	public Mesh(int[][] fl){
 		
 		this.faceList = fl;
-		
+		System.out.println("in mesh constructor");
 		
 	}
 	
@@ -222,6 +226,10 @@ public class Mesh implements Runnable{
 		
 		
 		return pointsArr;
+	}
+	
+	public void getUmbrella(Vert3 vert){
+		
 	}
 
 

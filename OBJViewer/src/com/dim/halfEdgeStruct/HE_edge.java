@@ -17,7 +17,7 @@ public class HE_edge {
 	private static int eID = 0;
 	public int id = -1;
 	private int starting_point; //startingpoint
-	int vert; // vertex at the end of the half-edge
+	public int vert; // vertex at the end of the half-edge
 	
 	HE_edge next; // next half-edge around the face
 	HE_edge pair; // oppositely oriented adjacent half-edge
