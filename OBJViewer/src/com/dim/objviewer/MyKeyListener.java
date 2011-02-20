@@ -22,27 +22,9 @@ public class MyKeyListener implements KeyListener {
 		char c = e.getKeyChar();
 		GLCanvas can = (GLCanvas) e.getComponent();
 
-		ov.rotData.rotmode = true;
-
 		switch (c) {
 		case java.awt.event.KeyEvent.VK_Q:
 			System.exit(0);
-			break;
-		case java.awt.event.KeyEvent.VK_4:
-			//ov.rotData.rotateGl(true, 'y');
-			ov.o -= 0.02f;
-			break;
-		case java.awt.event.KeyEvent.VK_6:
-			//ov.rotData.rotateGl(false, 'y');
-			ov.o += 0.02f;
-			break;
-		case java.awt.event.KeyEvent.VK_8:
-			//ov.rotData.rotateGl(true, 'x');
-			ov.l += 0.02f;
-			break;
-		case java.awt.event.KeyEvent.VK_2:
-			//ov.rotData.rotateGl(false, 'x');
-			ov.l -= 0.02f;
 			break;
 		case java.awt.event.KeyEvent.VK_SPACE:
 			ov.shadingData.toggleWireframe();
@@ -54,20 +36,11 @@ public class MyKeyListener implements KeyListener {
 		case java.awt.event.KeyEvent.VK_F:
 			ov.shadingData.setShadingmode("flat");		
 			break;
-		case java.awt.event.KeyEvent.VK_O:
-			ov.scaling += 0.02f;			
-			break;
-		case java.awt.event.KeyEvent.VK_P:
-			ov.scaling -= 0.02f;			
-			break;
 		case java.awt.event.KeyEvent.VK_BACK_SPACE:
 			ov.scaling = 1.0f;
-			ov.o = 0.0f;
-			ov.l = 0.0f;			
 			break;
 		case java.awt.event.KeyEvent.VK_1:
 			ov.initShader(can);
-			
 		default:
 			System.out.print("key typed - default\nKey: " + e.getKeyCode());
 			break;
@@ -77,8 +50,7 @@ public class MyKeyListener implements KeyListener {
 
 	@Override
 	public void keyReleased(KeyEvent e) {
-		// TODO implement
-		ov.rotData.rotmode = false;
+		// TODO implement		
 	}
 
 	@Override
