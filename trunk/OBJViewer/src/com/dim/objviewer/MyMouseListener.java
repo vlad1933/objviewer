@@ -9,24 +9,27 @@ import java.awt.event.MouseWheelListener;
 import javax.media.opengl.GLCanvas;
 import javax.swing.SwingUtilities;
 
-class MyMouseListener implements MouseListener {
-	public RotationData rotData;
+class MyMouseListener implements MouseListener {	
 	public ObjViewer ov;
-//	private int dragStartX, dragStartY;
-//	double viewRotX, viewRotY;
 
-	public MyMouseListener(RotationData rd, ObjViewer ov){
-		// TODO Auto-generated method stub
-		this.rotData = rd;
-		this.ov = ov;		
+	// private int dragStartX, dragStartY;
+	// double viewRotX, viewRotY;
+
+	public MyMouseListener(ObjViewer ov) {
+		// TODO Auto-generated method stub		
+		this.ov = ov;
 	}
-		
+
 	public void mouseClicked(MouseEvent e) {
+		GLCanvas can = (GLCanvas) e.getComponent();
 		if (SwingUtilities.isRightMouseButton(e)) {
-            //ov.reset();
-            GLCanvas can = (GLCanvas) e.getComponent();
-            can.display();
-        }
+			ov.reset();
+			can.display();
+		} else if (SwingUtilities.isLeftMouseButton(e)) {	
+			ov.PICKED = true;
+			ov.setLastPickPoint(e.getPoint());
+			can.display();
+		}
 	}
 
 	public void mouseEntered(MouseEvent e) {
@@ -34,71 +37,67 @@ class MyMouseListener implements MouseListener {
 
 	public void mouseExited(MouseEvent e) {
 	}
-	
+
 	public void mouseReleased(MouseEvent e) {
 	}
 
-	public void mousePressed(MouseEvent e) {		
-		
+	public void mousePressed(MouseEvent e) {
+
 		if (SwingUtilities.isLeftMouseButton(e)) {
-            ov.startDrag(e.getPoint());
-            //System.out.println("pressed");
-        }
+			ov.startDrag(e.getPoint());			
+		}
 	}
 
 }
 
 class MyMouseMotionListener implements MouseMotionListener {
-
-	public RotationData rotData;
-	public ObjViewer ov;
 	
-	public MyMouseMotionListener(RotationData rd, ObjViewer ov) {
-		this.rotData = rd;
+	public ObjViewer ov;
+
+	public MyMouseMotionListener(ObjViewer ov) {
 		this.ov = ov;
 	}
-	
+
 	public void mouseMoved(MouseEvent arg0) {
 	}
 
 	public void mouseDragged(MouseEvent e) {
 
 		GLCanvas can = (GLCanvas) e.getComponent();
-		
+
 		if (SwingUtilities.isLeftMouseButton(e)) {
-            ov.drag(e.getPoint());
-            //System.out.println("dragging");
-            can.display();
-        }
-		else if (SwingUtilities.isRightMouseButton(e)) {
-            ov.dragScale(e.getPoint());            
-            can.display();
-        }
+			ov.drag(e.getPoint());	
+			can.display();
+		} else if (SwingUtilities.isRightMouseButton(e)) {
+			ov.dragScale(e.getPoint());
+			can.display();
+		}
 	}
 }
 
-class MyMouseWheelListener implements MouseWheelListener{
+class MyMouseWheelListener implements MouseWheelListener {
 
 	private ObjViewer ov = null;
-	
-	public MyMouseWheelListener(ObjViewer ov){
-		this.ov  = ov;
+
+	public MyMouseWheelListener(ObjViewer ov) {
+		this.ov = ov;
 	}
-	
+
 	@Override
 	public void mouseWheelMoved(MouseWheelEvent e) {
 		// TODO Auto-generated method stub
-		if(e.getScrollAmount() < 0)
-			System.out.println("kleiner");
-		
-		System.out.println(e.getScrollAmount());
+		if (e.getWheelRotation() < 0) {
+			ov.scaling -= 0.1;
+		} else {
+			ov.scaling += 0.1;
+		}
+		GLCanvas can = (GLCanvas) (e.getComponent());
+		can.display();
 	}
-	
-	public int foogetWheelRotation(MouseWheelEvent e){
-		
-		return e.getScrollAmount();		
+
+	public int foogetWheelRotation(MouseWheelEvent e) {
+
+		return e.getScrollAmount();
 	}
-	
-	
-	
+
 }

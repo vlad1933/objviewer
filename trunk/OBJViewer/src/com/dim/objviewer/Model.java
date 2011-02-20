@@ -27,13 +27,15 @@ public class Model {
 	// Buffer for the index array
 	private IntBuffer indices;
 	private DoubleBuffer texcoordBuffer;
+	private String fileName = " ";
 
 	private Mesh mesh = null;
-	
+
 	public static boolean DEBUG = false;
+	public static int _ID = 1;
+	private int id;
 
 	private IntBuffer VBOVertices, VBONormals, VBOTexcoords, VBOIndices;
-
 
 	// Array of vertices building the house
 	private ArrayList<Vert3> vertexList = new ArrayList<Vert3>();
@@ -43,28 +45,30 @@ public class Model {
 	// new faceList is used in future
 	private ArrayList<Facette> nfaceList = new ArrayList<Facette>();
 	private ArrayList<Vert3> texcoordList = new ArrayList<Vert3>();
-	
 
-	public Pattern fpat = Pattern.compile("^f\\s+(\\d+)(?:/(\\d*))?(?:/(\\d+))?\\s+(\\d+)(?:/(\\d*))?(?:/(\\d+))?\\s+(\\d+)(?:/(\\d*))?(?:/(\\d+))?(?:\\s+(\\d+)(?:/(\\d*))?(?:/(\\d+))?)?$");
+	public Pattern fpat = Pattern
+			.compile("^f\\s+(\\d+)(?:/(\\d*))?(?:/(\\d+))?\\s+(\\d+)(?:/(\\d*))?(?:/(\\d+))?\\s+(\\d+)(?:/(\\d*))?(?:/(\\d+))?(?:\\s+(\\d+)(?:/(\\d*))?(?:/(\\d+))?)?$");
 	public Pattern f2pat = Pattern.compile("^f\\s+(\\d+)\\s(\\d+)\\s(\\d+)");
 	public Matcher fm;
-
-	private ModelDimensions modeldims = new ModelDimensions();
-	private double maxSize;
+	public Thread tr = null;
 
 	public Model(GL gl, String path) {
-		loadModel(path);
-		//centerScale();
-		buildVBOS(gl);
-		
+		this.id = Model._ID++;
+		this.fileName = path;
 
-		if (nfaceList.size() > 0){
-			System.out.println("mesh..");
-			//createHalfEdgeMesh();
-		}
-		else{
+		loadModel(path);
+		initModelDimension();		
+		buildVBOS(gl);
+
+		if (nfaceList.size() > 0) {
+			createHalfEdgeMesh();
+		} else {
 			System.out.println("FaceList unfilled - Mesh not created!");
 		}
+	}
+
+	public String getFileName() {
+		return this.fileName;
 	}
 
 	public void createHalfEdgeMesh() {
@@ -83,11 +87,167 @@ public class Model {
 		}
 
 		this.mesh = new Mesh(faceArray);
-		new Thread(mesh).start();
+		// new Thread(mesh).start();
+		Thread thread = new Thread(mesh);
+		this.tr = thread;
+		thread.start();
 	}
 
-	
-	public void draw(GL gl) {
+	public void initModelDimension(){		
+
+			double maxX = vertexList.get(0).getVertA();
+			double minX = vertexList.get(0).getVertA();
+			double maxY = vertexList.get(0).getVertB();
+			double minY = vertexList.get(0).getVertB();
+			double maxZ = vertexList.get(0).getVertC();
+			double minZ = vertexList.get(0).getVertC();
+		
+			double diffX = 0;
+			double diffY = 0;
+			double diffZ = 0;
+			
+			for(int i= 0; i < vertexList.size(); i++){
+				if(vertexList.get(i).getVertA() > maxX){
+					maxX = vertexList.get(i).getVertA();
+				}
+				
+				else if(vertexList.get(i).getVertA() < minX){
+					minX = vertexList.get(i).getVertA();					
+				}
+				
+				else if(vertexList.get(i).getVertB() > maxY){
+					maxY = vertexList.get(i).getVertB(); 
+				}
+				
+				else if (vertexList.get(i).getVertB() < minY){
+					minY = vertexList.get(i).getVertB();
+				}
+				
+				else if (vertexList.get(i).getVertC() > maxZ){					
+					maxZ = vertexList.get(i).getVertC();
+				}
+				
+				else if (vertexList.get(i).getVertC() < minZ){
+					minZ = vertexList.get(i).getVertC();
+				}
+				
+			}
+			System.out.println(maxX + "      " + minX);
+			System.out.println(maxY + "      " + minY);		
+			System.out.println(maxZ + "      " + minZ);		
+			
+			double xc = 0;
+			double yc = 0;
+			double zc = 0;
+			
+			if((maxX < 0 && minX < 0) || (maxX >= 0 && minX >= 0)){
+				xc = (maxX + minX)/2;
+				diffX = maxX - minX;
+			}
+				
+			if((maxY < 0 && minY < 0) || (maxY >= 0 && minY >= 0)){
+				yc = (maxY + minY)/2;	
+				diffY = maxY - minY;
+			}
+			if((maxZ < 0 && minZ < 0) || (maxZ >= 0 && minZ >= 0)){
+				zc = (maxZ + minZ)/2;	
+				diffZ = maxZ - minZ;
+			}
+			
+			if((maxX >= 0 && minX < 0) || (maxX < 0 && minX >= 0)){
+				xc = (maxX + minX)/2;
+				diffX = maxX - minX;
+			}
+				
+			if((maxY >= 0 && minY < 0) || (maxY < 0 && minY >= 0)){
+				yc = (maxY + minY)/2;	
+				diffY = maxY - minY;
+			}
+			if((maxZ >= 0 && minZ < 0) || (maxZ < 0 && minZ >= 0)){
+				zc = (maxZ + minZ)/2;
+				diffZ = maxZ - minZ;
+			}
+			
+			Vert3 center = new Vert3(xc, yc, zc);	
+			 
+	/*			System.out.println("xc: " + xc);
+				System.out.println("yc: " + yc);
+				System.out.println("zc: " + zc);
+*/
+
+			
+			
+			if (diffX < 0)
+				diffX = diffX * (-1);
+			
+			if (diffY < 0)
+				diffY = diffY * (-1);
+			
+			if (diffZ < 0)
+				diffZ = diffZ * (-1);
+			
+			/*System.out.println("diffX: " + diffX);
+			System.out.println("diffY: " + diffY);
+			System.out.println("diffZ: " + diffZ);
+			*/
+			if(diffX >= diffY && diffX >= diffZ ){		//x ist am größten
+				// ganze vertexList durch x
+				diffX= 1/diffX;
+				//scaleCenter(diffX , center);
+				//wichtig ist dass man es auf 6 restkommastellen beschränkt
+				unitVertex(diffX , center);
+				System.out.println("X!!!" + diffX);
+			}
+			
+			else if (diffY >= diffZ && diffY >= diffX){ 	//y ist am größten
+				//ganze VertexList durch y
+				diffY = 1/diffY;
+				//scaleCenter(diffY , center);
+				unitVertex(diffY , center);
+				System.out.println("Y!!!" + diffY);
+			}
+			
+			else if (diffZ >= diffX && diffZ >= diffY){	//z ist am größten
+				//ganze VertexList durch z
+
+				System.out.println("Z!!!!" + diffZ);
+				System.out.println("center: " + center.getVertA());
+				//scaleCenter(diffZ , center);
+				diffZ = 1/diffZ;
+				unitVertex(diffZ, center);
+				System.out.println("center: " + center.getVertA());
+			}
+			
+		
+			
+		}
+
+	private void unitVertex(double factor, Vert3 center) {
+
+		double helpx = 0;
+		double helpy = 0;
+		double helpz = 0;
+
+		for (int i = 0; i < vertexList.size(); i++) {
+			helpx = (vertexList.get(i).getVertA() - center.getVertA()) * factor;
+			helpy = (vertexList.get(i).getVertB() - center.getVertB()) * factor;
+			helpz = (vertexList.get(i).getVertC() - center.getVertC()) * factor;
+
+			Vert3 element = new Vert3(helpx, helpy, helpz);
+
+			vertexList.set(i, element);
+
+		}
+
+	}
+
+	public void draw(GL gl, boolean mode) {
+				
+		if (mode) {
+			drawInPickingMode(gl);
+			return;
+		}
+
 		// Enable vertex arrays
 		gl.glEnableClientState(GL.GL_VERTEX_ARRAY);
 		gl.glEnableClientState(GL.GL_NORMAL_ARRAY);
@@ -107,17 +267,13 @@ public class Model {
 
 		gl.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, VBOIndices.get(0));
 
-		if (DEBUG) {
-			printBuffer(VBOIndices, "indizee VBO");
-		}
-		
 		try {
-			gl.glDrawElements(GL.GL_TRIANGLES, nfaceList.size() * 3, GL.GL_UNSIGNED_INT, 0);
+			gl.glDrawElements(GL.GL_TRIANGLES, nfaceList.size() * 3,
+					GL.GL_UNSIGNED_INT, 0);
+			
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
 		}
-
-		//this.showHoles(gl);
 
 		// unbind?!
 		gl.glBindBuffer(GL.GL_ARRAY_BUFFER, 0);
@@ -129,7 +285,7 @@ public class Model {
 		gl.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY);
 	}
 
-	/*Nur einmal laufen lassen möglich?*/
+	/* Nur einmal laufen lassen möglich? */
 	public void showHoles(GL gl) {
 
 		if (mesh == null)
@@ -140,13 +296,13 @@ public class Model {
 
 		int[] bedgePnts = mesh.getBorderEdgePoints();
 		if (bedgePnts.length <= 0) {
-			//System.out.println("Keine Randkanten!");
+			System.out.println("Keine Randkanten!");
 			return;
 		}
 
 		gl.glColor3f(1.0f, 0.0f, 0.0f);
 		gl.glLineWidth(3.0f);
-
+		gl.glDisable(GL.GL_LIGHTING);
 		gl.glBegin(GL.GL_LINES);
 		for (int i = 0; i < bedgePnts.length; i = i + 2) {
 			gl.glVertex3d(vertexList.get(bedgePnts[i]).getVertA(), vertexList
@@ -157,7 +313,7 @@ public class Model {
 							.get(bedgePnts[i + 1]).getVertC());
 		}
 		gl.glEnd();
-
+		gl.glEnable(GL.GL_LIGHTING);
 		gl.glColor3f(0.0f, 0.0f, 0.0f);
 	}
 
@@ -165,7 +321,7 @@ public class Model {
 
 		vertexBuffer = BufferUtil.newDoubleBuffer(vertexList.size() * 3);
 		normalBuffer = BufferUtil.newDoubleBuffer(vertexList.size() * 3);
-	
+
 		texcoordBuffer = BufferUtil.newDoubleBuffer(vertexList.size() * 2);
 		indices = BufferUtil.newIntBuffer(nfaceList.size() * 3);
 
@@ -202,7 +358,7 @@ public class Model {
 			normalIndex = nfaceList.get(i).getNormInd3();
 			vertIndex = face.getVertInd3();
 			Vert3 normal3 = normalList.get(normalIndex);
-			dummyList.set(vertIndex, normal3);			
+			dummyList.set(vertIndex, normal3);
 		}
 
 		/*
@@ -256,7 +412,15 @@ public class Model {
 		gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBOVertices.get(0));
 		// Load the Data
 		gl.glBufferData(GL.GL_ARRAY_BUFFER, vertexList.size() * 3
-				* BufferUtil.SIZEOF_DOUBLE, vertexBuffer, GL.GL_STATIC_DRAW);
+				* BufferUtil.SIZEOF_DOUBLE, vertexBuffer, GL.GL_STATIC_DRAW); // nach
+																				// resize
+																				// einfach
+																				// nochmal
+																				// aufrufen
+																				// um
+																				// model
+																				// zu
+																				// lesen!!!
 
 		// Generate and bind Normal Buffer
 		VBONormals = BufferUtil.newIntBuffer(1);
@@ -297,7 +461,7 @@ public class Model {
 
 	private void loadModel(String name) {
 
-		String filename = name + ".obj";
+		String filename = name;
 
 		try {
 			System.out.println("Loading model from " + filename + " ...");
@@ -320,40 +484,38 @@ public class Model {
 	public void faceRegExpDeterm(String line) {
 
 		Matcher fm2 = f2pat.matcher(line);
-		
-		/*Wenn das Face nur Indizees enthält -> f 1 2 3
-		 *die Methode v. Cornette versagt sonst an dieser Stelle*/
-		if (fm2.find()){
+
+		/*
+		 * Wenn das Face nur Indizees enthält -> f 1 2 3die Methode v. Cornette
+		 * versagt sonst an dieser Stelle
+		 */
+		if (fm2.find()) {
 			int v1 = Integer.parseInt(fm2.group(1));
 			int v2 = Integer.parseInt(fm2.group(2));
 			int v3 = Integer.parseInt(fm2.group(3));
-			int[] vertsArray = {v1,v2,v3};
-			int[] nullArray = {1,1,1}; //weil indizee im Konstruktor dekrementiert wird!
-						
-			nfaceList.add(new Facette(nullArray,nullArray , vertsArray));
+			int[] vertsArray = { v1, v2, v3 };
+			int[] nullArray = { 1, 1, 1 }; // weil indizee im Konstruktor
+											// dekrementiert wird!
+
+			nfaceList.add(new Facette(nullArray, nullArray, vertsArray));
 			return;
 		}
-			
-		
-		
+
 		String tcs0 = fm.group(1);
 		String tc1s = fm.group(2);
 		String tc2s = fm.group(5);
 		String tc3s = fm.group(8);
 		String tc4s = fm.group(11);
 
-		
 		boolean hastexcoords = ((!tc1s.equals("")) && (!tc2s.equals(""))
 				&& (!tc3s.equals("")) && ((tc4s == null) || (!tc4s.equals(""))));
-		
-				
-		String	n1s = fm.group(3);
-		String	n2s = fm.group(6);
-		String	n3s = fm.group(9);
-		String	n4s = fm.group(12);
-				
-		
-		boolean	hasnormals = ((!n1s.equals("")) && (!n2s.equals(""))
+
+		String n1s = fm.group(3);
+		String n2s = fm.group(6);
+		String n3s = fm.group(9);
+		String n4s = fm.group(12);
+
+		boolean hasnormals = ((!n1s.equals("")) && (!n2s.equals(""))
 				&& (!n3s.equals("")) && ((n4s == null) || (!n4s.equals(""))));
 
 		int vert1 = Integer.parseInt(fm.group(1));
@@ -419,10 +581,10 @@ public class Model {
 					if (line.startsWith("v ")) { // vertex
 						extractVert(line);
 					} else if (line.startsWith("vt")) { // tex-coord
-						extractTexCord(line);// not supported yet						
+						extractTexCord(line);// not supported yet
 					} else if (line.startsWith("vn")) // normal
 						extractNormal(line);
-					else if (line.startsWith("f ")) { // face						
+					else if (line.startsWith("f ")) { // face
 						fm = fpat.matcher(line);
 						if (fm.find())
 							faceRegExpDeterm(line);
@@ -491,43 +653,7 @@ public class Model {
 		texcoordList.add(new Vert3(0, 0, 0));
 	}
 
-	private void centerScale()
-	/*
-	 * Position the model so it's center is at the origin, and scale it so its
-	 * longest dimension is no bigger than maxSize.
-	 */
-	{
-		// get the model's center point
-		Vert3 center = modeldims.getCenter();
-
-		// calculate a scale factor
-		double scaleFactor = 1.0;
-		double largest = modeldims.getLargest();
-		System.out.println("Largest dimension: " + largest);
-		if (largest != 0.0f)
-			scaleFactor = (maxSize / largest);
-		System.out.println("Scale factor: " + scaleFactor);
-
-		// modify the model's vertices
-		Vert3 vert;
-		double x, y, z;
-		for (int i = 0; i < vertexList.size(); i++) {
-			vert = (Vert3) vertexList.get(i);
-			x = (vert.getVertA() - center.getVertA()) * scaleFactor;
-			vert.setVertA(x);
-			y = (vert.getVertB() - center.getVertB()) * scaleFactor;
-			vert.setVertB(y);
-			z = (vert.getVertC() - center.getVertC()) * scaleFactor;
-			vert.setVertC(z);
-		}
-	} // end of centerScale()
-
 	private void computeNormals() {
-//		for(Vert3 v : vertexList){
-//			normalList.add(new Vert3());
-//		}
-//		
-//		return;
 		// Will man anhand von Dreiecksdaten Normalen erzeugen:
 		// Das Vektor-Kreuzprodukt. Um die Normale der Fläche beschrieben durch
 		// die 3 Ecken V1, V2, V3 zu bekommen, braucht man nur zu rechnen:
@@ -536,10 +662,8 @@ public class Model {
 		//
 		// Wenn wir das für jedes Polygon durchziehen, dann können wir für
 		// jeweils 3 Vertices die Normale angeben.
-		// Das schaut ein bisschen eckig aus, bringt uns unserem Ziel aber
-		// gewaltig näher.
 		System.out.println("Computing the Normals!");
-		
+
 		// solange wie faceList lang ist
 		for (int i = 0; i < nfaceList.size(); i++) {
 			Vert3 v1 = new Vert3(0, 0, 0);
@@ -548,27 +672,93 @@ public class Model {
 			Vert3 norm = new Vert3(0, 0, 0);
 
 			int[] vertIndices = nfaceList.get(i).getVertsAsArray();
-			
+
 			v1 = vertexList.get(vertIndices[0]);
 			v2 = vertexList.get(vertIndices[1]);
 			v3 = vertexList.get(vertIndices[2]);
 
 			norm = Vert3.cross((Vert3.minus(v2, v1)), (Vert3.minus(v3, v1)));
-			//norm = Vert3.cross((Vert3.multiply(v2, v3)), (Vert3.multiply(v2, v1)));
-			//norm = Vert3.normalizeVector(norm);
+			// norm = Vert3.cross((Vert3.multiply(v2, v3)), (Vert3.multiply(v2,
+			// v1)));
+			// norm = Vert3.normalizeVector(norm);
 
 			nfaceList.get(i).setNormIndex(i);
 
-			
 			normalList.add(norm);
 			normalList.add(norm);
 			normalList.add(norm);
-			
-		 
+
 		}
-		
+
 		System.out.println("Normals Computed!");
-		 
+
+	}
+
+	/*
+	 * ##########################################################################
+	 * ########## Picking related methods
+	 */
+
+	public void drawInPickingMode(GL gl) {
+		gl.glDisable(GL.GL_LIGHTING);
+		gl.glDisable(GL.GL_DITHER);
+		// float uni_color = (1.0f / (float) this._name);
+
+		// System.out.println(uni_color + " " + this._name);
+		gl.glColor3f(mapIdToColor(this.id), 0, 0);
+		// Enable vertex arrays
+		gl.glEnableClientState(GL.GL_VERTEX_ARRAY);
+		gl.glEnableClientState(GL.GL_NORMAL_ARRAY);
+		gl.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY);
+
+		gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBOVertices.get(0));
+		gl.glVertexPointer(3, GL.GL_DOUBLE, 0, 0);
+
+		gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBOTexcoords.get(0));
+		gl.glTexCoordPointer(2, GL.GL_DOUBLE, 0, 0);
+
+		gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBONormals.get(0));
+		gl.glNormalPointer(GL.GL_DOUBLE, 0, 0);
+
+		gl.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, VBOIndices.get(0));
+
+		if (DEBUG) {
+			printBuffer(VBOIndices, "indizee VBO");
+		}
+
+		try {
+			gl.glDrawElements(GL.GL_TRIANGLES, nfaceList.size() * 3,
+					GL.GL_UNSIGNED_INT, 0);
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
+
+		// unbind?!
+		gl.glBindBuffer(GL.GL_ARRAY_BUFFER, 0);
+		gl.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, 0);
+
+		// Disable vertex arrays
+		gl.glDisableClientState(GL.GL_VERTEX_ARRAY);
+		gl.glDisableClientState(GL.GL_NORMAL_ARRAY);
+		gl.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY);
+
+		gl.glEnable(GL.GL_LIGHTING);
+		gl.glEnable(GL.GL_DITHER);
+	}
+
+	/**
+	 * Maps ID to color with splay so that colors are not similar
+	 * 
+	 * @param id
+	 *            ID of Model-Object
+	 * @return
+	 */
+	public float mapIdToColor(float id) {
+		float color;
+
+		System.out.println("\tcolor: " + (1 / id));
+
+		return (1 / id);
 	}
 
 	/*
