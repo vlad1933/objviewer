@@ -245,26 +245,26 @@ public class Model {
 	 * Using the umbrella operator to smooth mesh at the specified point
 	 * @param vertIndex Index (in vertexBuffer) of vertex  
 	 */
-	private Vert3 smoothVert(int vertIndex){
-		if(mesh.getAdjacentVertIndeces(vertIndex) == null){
-			System.out.println("Vert in Point " + vertIndex + " was either on border or invalid.");
+	private Vert3 smoothVert(int toSmoothVertIndex){
+		if(mesh.getAdjacentVertIndeces(toSmoothVertIndex) == null){
+			System.out.println("Vert in Point " + toSmoothVertIndex + " was either on border or invalid.");
 			return null;
 		}
 		
-		int[] vertIndices = mesh.getAdjacentVertIndeces(vertIndex); //sind vertIndices ab0?
+		int[] vertIndices = mesh.getAdjacentVertIndeces(toSmoothVertIndex); //sind vertIndices ab0?
 		Vert3 sum = new Vert3();
 		double sumWeights = 0.0;
 		
 		//Inner sum of Ug(p)
 		for(int i = 0; i < vertIndices.length; i++){
 			//sum of Wi * pi - p
-			double wi = getWeighting(vertexList.get(vertIndices[i]),vertexList.get(vertIndex));
+			double wi = getWeighting(vertexList.get(vertIndices[i]),vertexList.get(toSmoothVertIndex));
 			sumWeights += wi;
 			
 			Vert3 dist = Vert3.minus(
 					Vert3.multiply(wi, 
 							vertexList.get(vertIndices[i])),
-					vertexList.get(vertIndex));
+					vertexList.get(toSmoothVertIndex));
 			sum =  Vert3.plus(sum, dist);
 		}
 		
@@ -276,16 +276,23 @@ public class Model {
 	public void smoothverts(){
 		int i = 0;
 		Vert3 smoothed = new Vert3();
+		ArrayList<Vert3> tempVertList = new ArrayList<Vert3>(vertexList.size());
+		
+		for(Vert3 v : vertexList){
+			tempVertList.add(v);
+		}
 		
 		for(Vert3 v : vertexList){			
 			smoothed = smoothVert(i);
 			if(smoothed == null)
 				continue;
 			System.out.println("old Vert: " + v + "\nnew Vert smoothed: " + smoothed );
-			vertexList.set(i, smoothed);
+			tempVertList.add(i,smoothed);
 			i++;
 		}
 		System.out.println("-------");
+		
+		// SCHREIBEN IN VERTLIST! -> vertexList = tempVertList;
 	}
 	
 	
