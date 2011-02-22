@@ -11,7 +11,6 @@ import javax.media.opengl.GL;
 
 import com.dim.halfEdgeStruct.Mesh;
 import com.sun.opengl.util.BufferUtil;
-import com.sun.xml.internal.messaging.saaj.packaging.mime.util.BEncoderStream;
 
 import java.util.regex.*;
 
