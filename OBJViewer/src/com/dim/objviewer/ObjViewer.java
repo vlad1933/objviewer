@@ -19,8 +19,6 @@ import javax.media.opengl.glu.GLUquadric;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-import sun.org.mozilla.javascript.Node;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileFilter;
