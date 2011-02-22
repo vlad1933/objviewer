@@ -105,6 +105,10 @@ public class SceneGraph {
 				node.model.showHoles(gl);
 		}
 	}
+	
+	public void smoothFIrst(){
+		this.nodeList.get(1).model.smoothverts();	
+	}
 }
 
 

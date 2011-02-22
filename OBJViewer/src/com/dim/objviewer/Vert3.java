@@ -104,6 +104,23 @@ public class Vert3 {
 		return normal;
 	}
 	
+	public void makeAbsolute(){
+		if(this.a < 0)			
+			this.a *= -1;
+		if(this.b < 0)
+			this.b *= -1;
+		if(this.c < 0)
+			this.c *= -1;
+	}
+	
+	public static Vert3 multiply(double scalar, Vert3 vert){
+		vert.setVertA(vert.getVertA() * scalar);
+		vert.setVertB(vert.getVertB() * scalar);
+		vert.setVertC(vert.getVertC() * scalar);
+		return vert;
+	}
+	
+	
 /*	// Normalize pIn vector into pOut
 	bool VectorNormalize (GLpoint *pIn, GLpoint *pOut)
 	{

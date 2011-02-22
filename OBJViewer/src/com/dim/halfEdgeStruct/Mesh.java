@@ -33,6 +33,11 @@ public class Mesh implements Runnable{
 		return dataStructureReady;
 	}
 	
+	public void printPList(){
+		for(pList p : PList)
+			System.out.println(p);
+	}
+	
 	@Override
 	public void run() {
 		// TODO Auto-generated method stub
@@ -161,6 +166,11 @@ public class Mesh implements Runnable{
 			System.out.println(edgeList.size());
 		}
 		this.dataStructureReady = true;
+		
+		int[] points = this.getAdjacentVertIndeces(0);
+		for(int p : points){
+			System.out.println(p);
+		}
 	}	
 	
 	/**
@@ -228,8 +238,50 @@ public class Mesh implements Runnable{
 		return pointsArr;
 	}
 	
-	public void getUmbrella(Vert3 vert){
+	
+	public int[] getAdjacentVertIndeces(int vert){
+		//all adges pointing to the specified point
+		ArrayList<HE_edge> adjEdges = new ArrayList<HE_edge>();
 		
+		//search for an edge pointing to vert
+		for(HE_edge e : edgeList){
+			if(e.getVert() == vert){
+				adjEdges.add(e);
+				break;
+			}				
+		}
+					
+		//Point wasnt found
+		if(adjEdges.size() == 0)
+			return null;
+							
+		
+		//get all adjacent edges
+		HE_edge startingEdge = edgeList.get(0);	
+		HE_edge iteratingEdge = startingEdge.getNext().getPair();
+		
+		
+		while(!startingEdge.equals(iteratingEdge)){
+			//is vert on border?
+			if(iteratingEdge == null){
+				System.out.println("has no pait edge -> must be on border");
+				edgeList.clear();
+				return null;
+			}
+			
+			adjEdges.add(iteratingEdge);
+			iteratingEdge = iteratingEdge.getNext().getPair();			
+		}
+		
+		//indeces of points that are adjacent
+		int[] points = new int[adjEdges.size()];
+		int i = 0;
+		for(HE_edge e : adjEdges){
+			points[i] = e.getPair().getVert();
+			i++;
+		}
+		
+		return points;
 	}
 
 
