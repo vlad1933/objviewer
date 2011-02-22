@@ -240,10 +240,78 @@ public class Model {
 		}
 
 	}
-
+	
+	/**
+	 * Using the umbrella operator to smooth mesh at the specified point
+	 * @param vertIndex Index (in vertexBuffer) of vertex  
+	 */
+	private Vert3 smoothVert(int vertIndex){
+		if(mesh.getAdjacentVertIndeces(vertIndex) == null){
+			System.out.println("Vert in Point " + vertIndex + " was either on border or invalid.");
+			return null;
+		}
+		
+		int[] vertIndices = mesh.getAdjacentVertIndeces(vertIndex); //sind vertIndices ab0?
+		Vert3 sum = new Vert3();
+		double sumWeights = 0.0;
+		
+		//Inner sum of Ug(p)
+		for(int i = 0; i < vertIndices.length; i++){
+			//sum of Wi * pi - p
+			double wi = getWeighting(vertexList.get(vertIndices[i]),vertexList.get(vertIndex));
+			sumWeights += wi;
+			
+			Vert3 dist = Vert3.minus(
+					Vert3.multiply(wi, 
+							vertexList.get(vertIndices[i])),
+					vertexList.get(vertIndex));
+			sum =  Vert3.plus(sum, dist);
+		}
+		
+		double invWeights = (1/sumWeights);
+		
+		return Vert3.multiply(invWeights,sum);		
+	}
+	
+	public void smoothverts(){
+		int i = 0;
+		Vert3 smoothed = new Vert3();
+		
+		for(Vert3 v : vertexList){			
+			smoothed = smoothVert(i);
+			if(smoothed == null)
+				continue;
+			System.out.println("old Vert: " + v + "\nnew Vert smoothed: " + smoothed );
+			vertexList.set(i, smoothed);
+			i++;
+		}
+		System.out.println("-------");
+	}
+	
+	
+	/**
+	 * Computes the distance between two Verts
+	 * @param p
+	 * @param q
+	 */
+	private double getWeighting(Vert3 p, Vert3 q){
+		Vert3 helpVert = Vert3.minus(p, q);
+		//helpVert.makeAbsolute();
+		double weight = Math.pow(helpVert.getVertA(),2) + Math.pow(helpVert.getVertB(),2) + Math.pow(helpVert.getVertC(),2);
+		
+		weight = Math.sqrt(weight);
+		
+		return weight; 
+	}
+	
+	/**
+	 * Draw the Model considering the drawing mode which is either "model is picked" or not
+	 * @param gl
+	 * @param mode indicates if model should be drawn in picking mode (In solid colors for color Picking)
+	 */
 	public void draw(GL gl, boolean mode) {
 				
-		if (mode) {
+		if (mode) {			
 			drawInPickingMode(gl);
 			return;
 		}
@@ -699,6 +767,9 @@ public class Model {
 	 * ########## Picking related methods
 	 */
 
+	/**
+	 * Draws the Model in solid colors for color Picking. A redraw with normal lighting is triggert afterwards
+	 */
 	public void drawInPickingMode(GL gl) {
 		gl.glDisable(GL.GL_LIGHTING);
 		gl.glDisable(GL.GL_DITHER);

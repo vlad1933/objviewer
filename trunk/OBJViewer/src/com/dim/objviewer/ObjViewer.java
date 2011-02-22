@@ -342,6 +342,23 @@ public class ObjViewer extends JFrame implements GLEventListener {
 
         });
         
+        /*
+         * Smooth Model
+         */        
+        JMenuItem cMenuItem = new JMenuItem("smooth mesh");        
+                
+        cMenuItem.setToolTipText("smooth mesh");
+        
+        appearanceMenu.add(cMenuItem);
+        
+        cMenuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent event) {
+            	
+            	sceneGraph.smoothFIrst();
+            }
+
+        });
+        
         menubar.add(appearanceMenu);
         
         setJMenuBar(menubar);
