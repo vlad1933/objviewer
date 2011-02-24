@@ -68,6 +68,8 @@ public class ObjViewer extends JFrame implements GLEventListener {
 
 	private SceneGraph sceneGraph;
 	private Point lastPickPoint = null;
+	
+	public GLContext cancon;
 
 	/*
 	 * ARcBALL
@@ -91,7 +93,7 @@ public class ObjViewer extends JFrame implements GLEventListener {
 		 * implement the GLEventListener interface
 		 */
 		canvas = new GLCanvas();
-		canvas.getContext().makeCurrent();
+		//canvas.getContext().makeCurrent();
 
 		shadingData = new Shading();
 
@@ -103,6 +105,8 @@ public class ObjViewer extends JFrame implements GLEventListener {
 
 		this.add(initUI(), BorderLayout.NORTH);
 		this.add(canvas, BorderLayout.CENTER);
+		
+		this.cancon = canvas.getContext();
 
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -255,9 +259,9 @@ public class ObjViewer extends JFrame implements GLEventListener {
 						"OBJ files", "obj");
 				fileopen.addChoosableFileFilter(filter);
 
-				int ret = fileopen.showDialog(menu, "Open file");
+				int returned = fileopen.showDialog(menu, "Open file");
 
-				if (ret == JFileChooser.APPROVE_OPTION) {
+				if (returned == JFileChooser.APPROVE_OPTION) {
 					File file = fileopen.getSelectedFile();
 					// Adding the Model to load
 					addModel(file.toString());
@@ -387,7 +391,7 @@ public class ObjViewer extends JFrame implements GLEventListener {
 	}
 
 	/**
-	 * Push OBJ-File-Path into initList of the SceneGRaph so it can be
+	 * Push OBJ-File-Path into initList of the SceneGraph so it can be
 	 * initialized by the next Display() call
 	 * 
 	 * @param filePath
@@ -722,14 +726,10 @@ public class ObjViewer extends JFrame implements GLEventListener {
 	public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
 		GL gl = drawable.getGL();
 
-//		int size = width < height ? width : height;
-//		int xbeg = width < height ? 0 : (width - height) / 2;
-//		int ybeg = width < height ? (height - width) / 2 : 0;
-
 		height = (height == 0) ? 1 : height;
         gl.glViewport(0, 0, width, height);
         
-		//gl.glViewport(xbeg, ybeg, size, size);
+		
 		gl.glMatrixMode(GL.GL_PROJECTION);
 		gl.glLoadIdentity();
 		gl.glOrtho(-2, 2, -2, 2, -10, 10);

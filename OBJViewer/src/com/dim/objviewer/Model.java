@@ -348,22 +348,29 @@ public class Model {
 		if (vertexListisTouched)
 			buildVBOS(gl);
 
+		//gl.glBindBuffer(GL.GL_ARRAY_BUFFER, 0);
+		gl.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, 0);
+		
 		// Enable vertex arrays
 		gl.glEnableClientState(GL.GL_VERTEX_ARRAY);
 		gl.glEnableClientState(GL.GL_NORMAL_ARRAY);
-		gl.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY);
+		//gl.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY);
+		
+
 
 		gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBOVertices.get(0));
 		gl.glVertexPointer(3, GL.GL_DOUBLE, 0, 0);
 
-		gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBOTexcoords.get(0));
-		gl.glTexCoordPointer(2, GL.GL_DOUBLE, 0, 0);
+		//gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBOTexcoords.get(0));
+		//gl.glTexCoordPointer(2, GL.GL_DOUBLE, 0, 0);
 
 		gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBONormals.get(0));
 		gl.glNormalPointer(GL.GL_DOUBLE, 0, 0);
 
 		gl.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, VBOIndices.get(0));
 
+		gl.glEnable(GL.GL_LIGHTING);
+		gl.glUseProgram(0);
 		
 		//if drawn in solid color mode, lights and dithering are switched off 
 		if (solidColorMode) {
@@ -396,13 +403,14 @@ public class Model {
 				
 		}
 
-		gl.glBindBuffer(GL.GL_ARRAY_BUFFER, 0);
+		//gl.glBindBuffer(GL.GL_ARRAY_BUFFER, 0);
 		gl.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, 0);
 
 		// Disable vertex arrays
 		gl.glDisableClientState(GL.GL_VERTEX_ARRAY);
 		gl.glDisableClientState(GL.GL_NORMAL_ARRAY);
-		gl.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY);
+		//gl.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY);
+		
 	}
 
 	/* Nur einmal laufen lassen möglich? */
@@ -552,15 +560,15 @@ public class Model {
 		gl.glBufferData(GL.GL_ARRAY_BUFFER, normalList.size() * 3
 				* BufferUtil.SIZEOF_DOUBLE, normalBuffer, GL.GL_STATIC_DRAW);
 
-		// Generate and bind the Texture Coordinates Buffer
-		VBOTexcoords = BufferUtil.newIntBuffer(1);
-		// Get a valid name
-		gl.glGenBuffers(1, VBOTexcoords);
-		// Bind the Buffer
-		gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBOTexcoords.get(0));
-		// Load the Data
-		gl.glBufferData(GL.GL_ARRAY_BUFFER, texcoordList.size() * 2
-				* BufferUtil.SIZEOF_DOUBLE, texcoordBuffer, GL.GL_STATIC_DRAW);
+//		// Generate and bind the Texture Coordinates Buffer
+//		VBOTexcoords = BufferUtil.newIntBuffer(1);
+//		// Get a valid name
+//		gl.glGenBuffers(1, VBOTexcoords);
+//		// Bind the Buffer
+//		gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBOTexcoords.get(0));
+//		// Load the Data
+//		gl.glBufferData(GL.GL_ARRAY_BUFFER, texcoordList.size() * 2
+//				* BufferUtil.SIZEOF_DOUBLE, texcoordBuffer, GL.GL_STATIC_DRAW);
 
 		VBOIndices = BufferUtil.newIntBuffer(1);
 		gl.glGenBuffers(1, VBOIndices);

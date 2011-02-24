@@ -24,13 +24,13 @@ class MyMouseListener implements MouseListener {
 
 	public void mouseClicked(MouseEvent e) {
 		GLCanvas can = (GLCanvas) e.getComponent();
-		/*GLContext context = can.getContext();
-		context.makeCurrent();
-		GL gl = context.getGL();*/
-		
+//		GLContext context = can.getContext();
+//		context.makeCurrent();
+//		GL gl = context.getGL();
+//		
 		if (SwingUtilities.isRightMouseButton(e)) {
 			ov.reset();
-			//ov.MouseToWorld(gl,e.getX(), e.getY());			
+			//ov.MouseToWorld(e.getX(), e.getY());			
 			
 			can.display();
 		} else if (SwingUtilities.isLeftMouseButton(e)) {	
