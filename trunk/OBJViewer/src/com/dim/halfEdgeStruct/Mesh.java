@@ -2,6 +2,7 @@ package com.dim.halfEdgeStruct;
 
 import java.util.ArrayList;
 
+import com.dim.objviewer.Model;
 import com.dim.objviewer.ObjViewer;
 import com.dim.objviewer.Vert3;
 
@@ -165,12 +166,15 @@ public class Mesh implements Runnable{
 			}
 			System.out.println(edgeList.size());
 		}
+		
 		this.dataStructureReady = true;
 		
+		/*
 		int[] points = this.getAdjacentVertIndeces(0);
 		for(int p : points){
 			System.out.println(p);
 		}
+		*/
 	}	
 	
 	/**
@@ -240,6 +244,10 @@ public class Mesh implements Runnable{
 	
 	
 	public int[] getAdjacentVertIndeces(int vert){
+		if(vert == 240){
+			System.out.println(Model.getModelref().vertexList.get(vert));
+			System.out.println("uff");
+		}
 		//all adges pointing to the specified point
 		ArrayList<HE_edge> adjEdges = new ArrayList<HE_edge>();
 		
@@ -257,14 +265,14 @@ public class Mesh implements Runnable{
 							
 		
 		//get all adjacent edges
-		HE_edge startingEdge = edgeList.get(0);	
+		HE_edge startingEdge = adjEdges.get(0);	
 		HE_edge iteratingEdge = startingEdge.getNext().getPair();
-		
+		System.out.println(iteratingEdge);
 		
 		while(!startingEdge.equals(iteratingEdge)){
 			//is vert on border?
 			if(iteratingEdge == null){
-				System.out.println("has no pait edge -> must be on border");
+				System.out.println("has no pair edge -> must be on border");
 				edgeList.clear();
 				return null;
 			}
@@ -277,7 +285,10 @@ public class Mesh implements Runnable{
 		int[] points = new int[adjEdges.size()];
 		int i = 0;
 		for(HE_edge e : adjEdges){
+			if(e.getPair() == null)
+				System.out.println("ERROR in mesh structure?!");;
 			points[i] = e.getPair().getVert();
+			//points[i] = e.getPair().starting_point;
 			i++;
 		}
 		
