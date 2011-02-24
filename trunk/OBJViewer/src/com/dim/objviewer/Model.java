@@ -26,18 +26,23 @@ public class Model {
 	// Buffer for the index array
 	private IntBuffer indices;
 	private DoubleBuffer texcoordBuffer;
-	private String fileName = " ";
+	public String fileName = " ";
 
 	private Mesh mesh = null;
 
 	public static boolean DEBUG = false;
 	public static int _ID = 1;
-	private int id;
+	public int id;
+	private static Model modelRef;
 
 	private IntBuffer VBOVertices, VBONormals, VBOTexcoords, VBOIndices;
 
+	public static Model getModelref() {
+		return modelRef;
+	}
+
 	// Array of vertices building the house
-	private ArrayList<Vert3> vertexList = new ArrayList<Vert3>();
+	public ArrayList<Vert3> vertexList = new ArrayList<Vert3>();
 	private ArrayList<Vert3> normalList = new ArrayList<Vert3>();
 	// deprecated
 	private ArrayList<Face3> faceList = new ArrayList<Face3>();
@@ -49,14 +54,16 @@ public class Model {
 			.compile("^f\\s+(\\d+)(?:/(\\d*))?(?:/(\\d+))?\\s+(\\d+)(?:/(\\d*))?(?:/(\\d+))?\\s+(\\d+)(?:/(\\d*))?(?:/(\\d+))?(?:\\s+(\\d+)(?:/(\\d*))?(?:/(\\d+))?)?$");
 	public Pattern f2pat = Pattern.compile("^f\\s+(\\d+)\\s(\\d+)\\s(\\d+)");
 	public Matcher fm;
-	public Thread tr = null;
+
+	public boolean vertexListisTouched = false;
 
 	public Model(GL gl, String path) {
+		Model.modelRef = this;
 		this.id = Model._ID++;
 		this.fileName = path;
 
 		loadModel(path);
-		initModelDimension();		
+		initModelDimension();
 		buildVBOS(gl);
 
 		if (nfaceList.size() > 0) {
@@ -88,138 +95,133 @@ public class Model {
 		this.mesh = new Mesh(faceArray);
 		// new Thread(mesh).start();
 		Thread thread = new Thread(mesh);
-		this.tr = thread;
 		thread.start();
 	}
 
-	public void initModelDimension(){		
+	public void initModelDimension() {
 
-			double maxX = vertexList.get(0).getVertA();
-			double minX = vertexList.get(0).getVertA();
-			double maxY = vertexList.get(0).getVertB();
-			double minY = vertexList.get(0).getVertB();
-			double maxZ = vertexList.get(0).getVertC();
-			double minZ = vertexList.get(0).getVertC();
-		
-			double diffX = 0;
-			double diffY = 0;
-			double diffZ = 0;
-			
-			for(int i= 0; i < vertexList.size(); i++){
-				if(vertexList.get(i).getVertA() > maxX){
-					maxX = vertexList.get(i).getVertA();
-				}
-				
-				else if(vertexList.get(i).getVertA() < minX){
-					minX = vertexList.get(i).getVertA();					
-				}
-				
-				else if(vertexList.get(i).getVertB() > maxY){
-					maxY = vertexList.get(i).getVertB(); 
-				}
-				
-				else if (vertexList.get(i).getVertB() < minY){
-					minY = vertexList.get(i).getVertB();
-				}
-				
-				else if (vertexList.get(i).getVertC() > maxZ){					
-					maxZ = vertexList.get(i).getVertC();
-				}
-				
-				else if (vertexList.get(i).getVertC() < minZ){
-					minZ = vertexList.get(i).getVertC();
-				}
-				
-			}
-			System.out.println(maxX + "      " + minX);
-			System.out.println(maxY + "      " + minY);		
-			System.out.println(maxZ + "      " + minZ);		
-			
-			double xc = 0;
-			double yc = 0;
-			double zc = 0;
-			
-			if((maxX < 0 && minX < 0) || (maxX >= 0 && minX >= 0)){
-				xc = (maxX + minX)/2;
-				diffX = maxX - minX;
-			}
-				
-			if((maxY < 0 && minY < 0) || (maxY >= 0 && minY >= 0)){
-				yc = (maxY + minY)/2;	
-				diffY = maxY - minY;
-			}
-			if((maxZ < 0 && minZ < 0) || (maxZ >= 0 && minZ >= 0)){
-				zc = (maxZ + minZ)/2;	
-				diffZ = maxZ - minZ;
-			}
-			
-			if((maxX >= 0 && minX < 0) || (maxX < 0 && minX >= 0)){
-				xc = (maxX + minX)/2;
-				diffX = maxX - minX;
-			}
-				
-			if((maxY >= 0 && minY < 0) || (maxY < 0 && minY >= 0)){
-				yc = (maxY + minY)/2;	
-				diffY = maxY - minY;
-			}
-			if((maxZ >= 0 && minZ < 0) || (maxZ < 0 && minZ >= 0)){
-				zc = (maxZ + minZ)/2;
-				diffZ = maxZ - minZ;
-			}
-			
-			Vert3 center = new Vert3(xc, yc, zc);	
-			 
-	/*			System.out.println("xc: " + xc);
-				System.out.println("yc: " + yc);
-				System.out.println("zc: " + zc);
-*/
+		double maxX = vertexList.get(0).getVertA();
+		double minX = vertexList.get(0).getVertA();
+		double maxY = vertexList.get(0).getVertB();
+		double minY = vertexList.get(0).getVertB();
+		double maxZ = vertexList.get(0).getVertC();
+		double minZ = vertexList.get(0).getVertC();
 
-			
-			
-			if (diffX < 0)
-				diffX = diffX * (-1);
-			
-			if (diffY < 0)
-				diffY = diffY * (-1);
-			
-			if (diffZ < 0)
-				diffZ = diffZ * (-1);
-			
-			/*System.out.println("diffX: " + diffX);
-			System.out.println("diffY: " + diffY);
-			System.out.println("diffZ: " + diffZ);
-			*/
-			if(diffX >= diffY && diffX >= diffZ ){		//x ist am größten
-				// ganze vertexList durch x
-				diffX= 1/diffX;
-				//scaleCenter(diffX , center);
-				//wichtig ist dass man es auf 6 restkommastellen beschränkt
-				unitVertex(diffX , center);
-				System.out.println("X!!!" + diffX);
-			}
-			
-			else if (diffY >= diffZ && diffY >= diffX){ 	//y ist am größten
-				//ganze VertexList durch y
-				diffY = 1/diffY;
-				//scaleCenter(diffY , center);
-				unitVertex(diffY , center);
-				System.out.println("Y!!!" + diffY);
-			}
-			
-			else if (diffZ >= diffX && diffZ >= diffY){	//z ist am größten
-				//ganze VertexList durch z
+		double diffX = 0;
+		double diffY = 0;
+		double diffZ = 0;
 
-				System.out.println("Z!!!!" + diffZ);
-				System.out.println("center: " + center.getVertA());
-				//scaleCenter(diffZ , center);
-				diffZ = 1/diffZ;
-				unitVertex(diffZ, center);
-				System.out.println("center: " + center.getVertA());
+		for (int i = 0; i < vertexList.size(); i++) {
+			if (vertexList.get(i).getVertA() > maxX) {
+				maxX = vertexList.get(i).getVertA();
 			}
-			
-		
-			
+
+			else if (vertexList.get(i).getVertA() < minX) {
+				minX = vertexList.get(i).getVertA();
+			}
+
+			else if (vertexList.get(i).getVertB() > maxY) {
+				maxY = vertexList.get(i).getVertB();
+			}
+
+			else if (vertexList.get(i).getVertB() < minY) {
+				minY = vertexList.get(i).getVertB();
+			}
+
+			else if (vertexList.get(i).getVertC() > maxZ) {
+				maxZ = vertexList.get(i).getVertC();
+			}
+
+			else if (vertexList.get(i).getVertC() < minZ) {
+				minZ = vertexList.get(i).getVertC();
+			}
+
 		}
+		System.out.println(maxX + "      " + minX);
+		System.out.println(maxY + "      " + minY);
+		System.out.println(maxZ + "      " + minZ);
+
+		double xc = 0;
+		double yc = 0;
+		double zc = 0;
+
+		if ((maxX < 0 && minX < 0) || (maxX >= 0 && minX >= 0)) {
+			xc = (maxX + minX) / 2;
+			diffX = maxX - minX;
+		}
+
+		if ((maxY < 0 && minY < 0) || (maxY >= 0 && minY >= 0)) {
+			yc = (maxY + minY) / 2;
+			diffY = maxY - minY;
+		}
+		if ((maxZ < 0 && minZ < 0) || (maxZ >= 0 && minZ >= 0)) {
+			zc = (maxZ + minZ) / 2;
+			diffZ = maxZ - minZ;
+		}
+
+		if ((maxX >= 0 && minX < 0) || (maxX < 0 && minX >= 0)) {
+			xc = (maxX + minX) / 2;
+			diffX = maxX - minX;
+		}
+
+		if ((maxY >= 0 && minY < 0) || (maxY < 0 && minY >= 0)) {
+			yc = (maxY + minY) / 2;
+			diffY = maxY - minY;
+		}
+		if ((maxZ >= 0 && minZ < 0) || (maxZ < 0 && minZ >= 0)) {
+			zc = (maxZ + minZ) / 2;
+			diffZ = maxZ - minZ;
+		}
+
+		Vert3 center = new Vert3(xc, yc, zc);
+
+		/*
+		 * System.out.println("xc: " + xc); System.out.println("yc: " + yc);
+		 * System.out.println("zc: " + zc);
+		 */
+
+		if (diffX < 0)
+			diffX = diffX * (-1);
+
+		if (diffY < 0)
+			diffY = diffY * (-1);
+
+		if (diffZ < 0)
+			diffZ = diffZ * (-1);
+
+		/*
+		 * System.out.println("diffX: " + diffX); System.out.println("diffY: " +
+		 * diffY); System.out.println("diffZ: " + diffZ);
+		 */
+		if (diffX >= diffY && diffX >= diffZ) { // x ist am größten
+			// ganze vertexList durch x
+			diffX = 1 / diffX;
+			// scaleCenter(diffX , center);
+			// wichtig ist dass man es auf 6 restkommastellen beschränkt
+			unitVertex(diffX, center);
+			System.out.println("X!!!" + diffX);
+		}
+
+		else if (diffY >= diffZ && diffY >= diffX) { // y ist am größten
+			// ganze VertexList durch y
+			diffY = 1 / diffY;
+			// scaleCenter(diffY , center);
+			unitVertex(diffY, center);
+			System.out.println("Y!!!" + diffY);
+		}
+
+		else if (diffZ >= diffX && diffZ >= diffY) { // z ist am größten
+			// ganze VertexList durch z
+
+			System.out.println("Z!!!!" + diffZ);
+			System.out.println("center: " + center.getVertA());
+			// scaleCenter(diffZ , center);
+			diffZ = 1 / diffZ;
+			unitVertex(diffZ, center);
+			System.out.println("center: " + center.getVertA());
+		}
+
+	}
 
 	private void unitVertex(double factor, Vert3 center) {
 
@@ -239,96 +241,117 @@ public class Model {
 		}
 
 	}
-	
+
 	/**
 	 * Using the umbrella operator to smooth mesh at the specified point
-	 * @param vertIndex Index (in vertexBuffer) of vertex  
+	 * 
+	 * @param vertIndex
+	 *            Index (in vertexBuffer) of vertex
 	 */
-	private Vert3 smoothVert(int toSmoothVertIndex){
-		if(mesh.getAdjacentVertIndeces(toSmoothVertIndex) == null){
-			System.out.println("Vert in Point " + toSmoothVertIndex + " was either on border or invalid.");
+	private Vert3 smoothVert(int toSmoothVertIndex) {
+		// Check adjacent Verts for null
+		if (mesh.getAdjacentVertIndeces(toSmoothVertIndex) == null) {
+			System.out.println("Vert in Point " + toSmoothVertIndex
+					+ " was either on border or invalid.");
 			return null;
 		}
-		
-		int[] vertIndices = mesh.getAdjacentVertIndeces(toSmoothVertIndex); //sind vertIndices ab0?
+
+		int[] vertIndices = mesh.getAdjacentVertIndeces(toSmoothVertIndex); // sind
+		// vertIndices
+		// ab0?
 		Vert3 sum = new Vert3();
 		double sumWeights = 0.0;
-		
-		//Inner sum of Ug(p)
-		for(int i = 0; i < vertIndices.length; i++){
-			//sum of Wi * pi - p
-			double wi = getWeighting(vertexList.get(vertIndices[i]),vertexList.get(toSmoothVertIndex));
+
+		// Inner sum of Ug(p)
+		for (int i = 0; i < vertIndices.length; i++) {
+			// sum of Wi * pi - p
+			double wi = getWeighting(vertexList.get(vertIndices[i]), vertexList
+					.get(toSmoothVertIndex));
 			sumWeights += wi;
-			
-			Vert3 dist = Vert3.minus(
-					Vert3.multiply(wi, 
-							vertexList.get(vertIndices[i])),
-					vertexList.get(toSmoothVertIndex));
-			sum =  Vert3.plus(sum, dist);
+			Vert3 foo = Vert3.multiply(wi, vertexList.get(vertIndices[i]));
+			sum = Vert3.plus(sum, foo);
 		}
-		
-		double invWeights = (1/sumWeights);
-		
-		return Vert3.multiply(invWeights,sum);		
+
+		double invWeights = (1 / sumWeights);
+
+		Vert3 direction = Vert3.minus(Vert3.multiply(invWeights, sum),
+				vertexList.get(toSmoothVertIndex));
+		return direction;
 	}
-	
-	public void smoothverts(){
+
+	public void smoothVerts() {
 		int i = 0;
 		Vert3 smoothed = new Vert3();
-		ArrayList<Vert3> tempVertList = new ArrayList<Vert3>(vertexList.size());
-		
-		for(Vert3 v : vertexList){
+
+		ArrayList<Vert3> tempVertList = new ArrayList<Vert3>();
+
+		for (Vert3 v : vertexList) {
+			// System.out.println(i++ + ": " +v);
 			tempVertList.add(v);
 		}
-		
-		for(Vert3 v : vertexList){			
+
+		System.out.println("-------");
+		for (Vert3 v : tempVertList) {
 			smoothed = smoothVert(i);
-			if(smoothed == null)
+			if (smoothed == null) {
+				i++;
 				continue;
-			System.out.println("old Vert: " + v + "\nnew Vert smoothed: " + smoothed );
-			tempVertList.add(i,smoothed);
+			}
+			System.out.println("old Vert: " + v + "\nnew Vert smoothed: "
+					+ smoothed);
+			Vert3 smoothedP = Vert3.plus(smoothed, vertexList.get(i));
+			tempVertList.set(i, smoothedP);
 			i++;
 		}
 		System.out.println("-------");
+
+		// flush templist in vertexList
+		vertexList.clear();
+		for (Vert3 v : tempVertList) {
+			vertexList.add(v);
+		}
 		
-		// SCHREIBEN IN VERTLIST! -> vertexList = tempVertList;
+		tempVertList.clear();
+
+		vertexListisTouched = true;
+
 	}
-	
-	
+
 	/**
 	 * Computes the distance between two Verts
+	 * 
 	 * @param p
 	 * @param q
 	 */
-	private double getWeighting(Vert3 p, Vert3 q){
+	private double getWeighting(Vert3 p, Vert3 q) {
 		Vert3 helpVert = Vert3.minus(p, q);
-		//helpVert.makeAbsolute();
-		double weight = Math.pow(helpVert.getVertA(),2) + Math.pow(helpVert.getVertB(),2) + Math.pow(helpVert.getVertC(),2);
-		
+		double weight = Math.pow(helpVert.getVertA(), 2)
+				+ Math.pow(helpVert.getVertB(), 2)
+				+ Math.pow(helpVert.getVertC(), 2);
 		weight = Math.sqrt(weight);
-		
-		return weight; 
+
+		return weight;
 	}
-	
+
 	/**
-	 * Draw the Model considering the drawing mode which is either "model is picked" or not
+	 * Draw the Model considering the drawing mode which is either
+	 * "model is picked" or not
+	 * 
 	 * @param gl
-	 * @param mode indicates if model should be drawn in picking mode (In solid colors for color Picking)
+	 * @param mode
+	 *            indicates if model should be drawn in picking mode (In solid
+	 *            colors for color Picking)
 	 */
-	public void draw(GL gl, boolean mode) {
-				
-		if (mode) {			
-			drawInPickingMode(gl);
-			return;
-		}
+	public void draw(GL gl, boolean solidColorMode, boolean pickedMode) {
+
+		// If vertexList is modified (e.g. smoothing) the VBOs must be rebuild
+		if (vertexListisTouched)
+			buildVBOS(gl);
 
 		// Enable vertex arrays
 		gl.glEnableClientState(GL.GL_VERTEX_ARRAY);
 		gl.glEnableClientState(GL.GL_NORMAL_ARRAY);
 		gl.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY);
-		// gl.glEnableClientState(GL.GL_INDEX_ARRAY); //If enabled, the index
-		// array is enabled for writing and used during rendering when
-		// drawelemnts() is called
 
 		gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBOVertices.get(0));
 		gl.glVertexPointer(3, GL.GL_DOUBLE, 0, 0);
@@ -341,15 +364,38 @@ public class Model {
 
 		gl.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, VBOIndices.get(0));
 
-		try {
-			gl.glDrawElements(GL.GL_TRIANGLES, nfaceList.size() * 3,
-					GL.GL_UNSIGNED_INT, 0);
+		
+		//if drawn in solid color mode, lights and dithering are switched off 
+		if (solidColorMode) {
+			gl.glDisable(GL.GL_LIGHTING);
+			gl.glDisable(GL.GL_DITHER);
+			gl.glColor3f(mapIdToColor(this.id)[0], mapIdToColor(this.id)[1], mapIdToColor(this.id)[2]);
 			
-		} catch (Exception e) {
-			System.out.println(e.getMessage());
+			try {
+				gl.glDrawElements(GL.GL_TRIANGLES, nfaceList.size() * 3,
+						GL.GL_UNSIGNED_INT, 0);
+
+			} catch (Exception e) {
+				System.out.println(e.getMessage());
+			}
+			gl.glEnable(GL.GL_LIGHTING);
+			gl.glEnable(GL.GL_DITHER);
+		} else {
+			if(pickedMode){				
+				gl.glColor3f(1, 0, 1);
+			}
+			else{
+				gl.glColor3f(1, 1, 1);
+			}
+			try {							
+				gl.glDrawElements(GL.GL_TRIANGLES, nfaceList.size() * 3,
+						GL.GL_UNSIGNED_INT, 0);
+			} catch (Exception e) {
+				System.out.println(e.getMessage());
+			}			
+				
 		}
 
-		// unbind?!
 		gl.glBindBuffer(GL.GL_ARRAY_BUFFER, 0);
 		gl.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, 0);
 
@@ -362,15 +408,21 @@ public class Model {
 	/* Nur einmal laufen lassen möglich? */
 	public void showHoles(GL gl) {
 
-		if (mesh == null)
+		if (mesh == null){
+			System.out.println("Mesh not initialized jet!");
 			return;
+		}
 
-		if (!mesh.isReady())
+		if (!mesh.isReady()){
+			System.out.println("Mesh construction not ready jet!");
 			return;
+		}
 
+		// auslagern muss nciht jedes mal aufgerufen werden -> wegspoeichern
+		// einmal!
 		int[] bedgePnts = mesh.getBorderEdgePoints();
+
 		if (bedgePnts.length <= 0) {
-			System.out.println("Keine Randkanten!");
 			return;
 		}
 
@@ -388,10 +440,12 @@ public class Model {
 		}
 		gl.glEnd();
 		gl.glEnable(GL.GL_LIGHTING);
-		gl.glColor3f(0.0f, 0.0f, 0.0f);
+		
 	}
 
 	private void buildVBOS(GL gl) {
+
+		vertexListisTouched = false;
 
 		vertexBuffer = BufferUtil.newDoubleBuffer(vertexList.size() * 3);
 		normalBuffer = BufferUtil.newDoubleBuffer(vertexList.size() * 3);
@@ -486,15 +540,7 @@ public class Model {
 		gl.glBindBuffer(GL.GL_ARRAY_BUFFER, VBOVertices.get(0));
 		// Load the Data
 		gl.glBufferData(GL.GL_ARRAY_BUFFER, vertexList.size() * 3
-				* BufferUtil.SIZEOF_DOUBLE, vertexBuffer, GL.GL_STATIC_DRAW); // nach
-																				// resize
-																				// einfach
-																				// nochmal
-																				// aufrufen
-																				// um
-																				// model
-																				// zu
-																				// lesen!!!
+				* BufferUtil.SIZEOF_DOUBLE, vertexBuffer, GL.GL_STATIC_DRAW);
 
 		// Generate and bind Normal Buffer
 		VBONormals = BufferUtil.newIntBuffer(1);
@@ -530,6 +576,7 @@ public class Model {
 			printBuffer(indices, " index Bfr ");
 		}
 
+		// printList(vertexList, "VertexListe!");
 		// this.debugPrintFaces();
 	}
 
@@ -569,7 +616,7 @@ public class Model {
 			int v3 = Integer.parseInt(fm2.group(3));
 			int[] vertsArray = { v1, v2, v3 };
 			int[] nullArray = { 1, 1, 1 }; // weil indizee im Konstruktor
-											// dekrementiert wird!
+			// dekrementiert wird!
 
 			nfaceList.add(new Facette(nullArray, nullArray, vertsArray));
 			return;
@@ -774,15 +821,17 @@ public class Model {
 	 */
 
 	/**
-	 * Draws the Model in solid colors for color Picking. A redraw with normal lighting is triggert afterwards
+	 * Draws the Model in solid colors for color Picking. A redraw with normal
+	 * lighting is triggert afterwards
 	 */
-	public void drawInPickingMode(GL gl) {
+	public void drawInSolidColorMode(GL gl) {
 		gl.glDisable(GL.GL_LIGHTING);
 		gl.glDisable(GL.GL_DITHER);
 		// float uni_color = (1.0f / (float) this._name);
 
 		// System.out.println(uni_color + " " + this._name);
-		gl.glColor3f(mapIdToColor(this.id), 0, 0);
+		gl.glColor3f(mapIdToColor(this.id)[0], mapIdToColor(this.id)[1],
+				mapIdToColor(this.id)[2]);
 		// Enable vertex arrays
 		gl.glEnableClientState(GL.GL_VERTEX_ARRAY);
 		gl.glEnableClientState(GL.GL_NORMAL_ARRAY);
@@ -830,12 +879,18 @@ public class Model {
 	 *            ID of Model-Object
 	 * @return
 	 */
-	public float mapIdToColor(float id) {
-		float color;
+	public float[] mapIdToColor(int id) {
 
-		System.out.println("\tcolor: " + (1 / id));
+		float[] color = new float[4];
+		color[0] = (255 & (id)) / 255f;
+		color[1] = (255 & ((id) >> 8)) / 255f;
+		color[2] = (255 & ((id) >> 16)) / 255f;
+		color[3] = 1.0f;
 
-		return (1 / id);
+		System.out.println("    from id:" + id + "color: " + color[0] + " "
+				+ color[1] + " " + color[2]);
+
+		return color;
 	}
 
 	/*
@@ -878,7 +933,7 @@ public class Model {
 		System.out.println("Liste " + name + " wird ausgegeben");
 
 		for (int i = 0; i < al.size(); i++) {
-			System.out.print(" " + al.get(i));
+			System.out.print("\n" + al.get(i));
 		}
 		System.out.println(" Capacity: " + al.size());
 	}
