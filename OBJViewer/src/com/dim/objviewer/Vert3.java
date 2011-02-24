@@ -114,10 +114,11 @@ public class Vert3 {
 	}
 	
 	public static Vert3 multiply(double scalar, Vert3 vert){
-		vert.setVertA(vert.getVertA() * scalar);
-		vert.setVertB(vert.getVertB() * scalar);
-		vert.setVertC(vert.getVertC() * scalar);
-		return vert;
+		Vert3 result = new Vert3();
+		result.setVertA(vert.getVertA() * scalar);
+		result.setVertB(vert.getVertB() * scalar);
+		result.setVertC(vert.getVertC() * scalar);
+		return result;
 	}
 	
 	
