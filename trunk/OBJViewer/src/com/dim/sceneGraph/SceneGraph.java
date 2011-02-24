@@ -13,6 +13,7 @@ public class SceneGraph {
 	
 	public SgNode rootNode = new SgNode(null);
 	private ObjViewer objViewerRef = null;
+	private int currentPickedModelId = -1;
 	
 	public SceneGraph(ObjViewer ov){
 		this.objViewerRef = ov;
@@ -40,6 +41,24 @@ public class SceneGraph {
 				
 		return true;
 				
+	}
+	
+	/**
+	 * Set everything up for drawing model in emphasized mode (because model is picked)
+	 * @param modelID
+	 */
+	public void setUpPickedModel(int modelID){
+		SgNode node = this.getNodeByModelId(modelID);
+		
+		//Background was picked or model specified by id wasn't found
+		if(node == null){
+			this.currentPickedModelId = -1;
+			return;
+		}
+		
+		System.out.println(node.model.fileName + " was picked!");
+		this.currentPickedModelId = modelID;
+		objViewerRef.triggerCanvasDisplay();		
 	}
 	
 	/**
@@ -87,27 +106,76 @@ public class SceneGraph {
 		return null;
 	}
 	
+	public SgNode getNodeByModelId(int modelId){
+		for(int i = 1; i < nodeList.size(); i++){
+			if(modelId == nodeList.get(i).model.id){
+				return nodeList.get(i);
+			}
+		}
+		return null;
+	}
+	
 	public SgNode getRootNode(){
 		return nodeList.get(0);
 	}
 	
-	public void draw(GL gl, boolean pickingMode){
+	public void draw(GL gl, boolean solidColorMode){
 		for(SgNode node : nodeList){
 			//check for rootNode which ID is always 0
 			if(node.nodeId == 0)
-				continue;
-			
-			//draw the model in picking or normal mode
-			node.model.draw(gl,pickingMode);
+				continue;			
+						
+			//draw the model 
+			//	in solidColors or normal mode
+			//	in picked (emphasized) mode
+			boolean foo = modelIsPicked(node);
+			node.model.draw(gl,solidColorMode,foo);
 			
 			//if highlightHoles flag is true the holes in the mesh are shown
 			if(this.objViewerRef.highlightMeshHoles)
 				node.model.showHoles(gl);
 		}
+		
+		if(currentPickedModelId != -1)
+			getNodeByModelId(currentPickedModelId).model.draw(gl, false, true);
 	}
 	
-	public void smoothFIrst(){
-		this.nodeList.get(1).model.smoothverts();	
+	public boolean modelIsPicked(SgNode node){
+		System.out.println("picked: " + currentPickedModelId);
+		
+		for(int i = 1; i < nodeList.size(); i++){
+			if(node.model.id == this.currentPickedModelId)
+				return true;
+		}
+		
+		return false;
+	}
+	
+	public void smoothModel(){
+		if(currentPickedModelId == -1){
+			System.out.println("No Model is picked, can't smooth");
+			return;
+		}
+			
+		SgNode node = getNodeByModelId(currentPickedModelId);
+		node.model.smoothVerts();
+		
+	}
+	
+	/**
+	 * find a Model inside the SceneGraph by its unique solid color value 
+	 * (which is also used for drawing in picking mode) 
+	 * @param colorValue
+	 * @return
+	 */
+	public String findModelByColor(float[] colorValue){
+		for(SgNode n : nodeList){
+			float[] currentColor = n.model.mapIdToColor(n.model.id);
+			if(currentColor == colorValue)
+				return n.model.getFileName();
+		}
+		
+		return "Nothing found!";  	
 	}
 }
 
