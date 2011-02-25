@@ -10,6 +10,7 @@ import java.util.*;
 import javax.media.opengl.GL;
 
 import com.dim.halfEdgeStruct.Mesh;
+import com.dim.sceneGraph.SceneGraph;
 import com.sun.opengl.util.BufferUtil;
 
 import java.util.regex.*;
@@ -137,10 +138,7 @@ public class Model {
 			}
 
 		}
-		System.out.println(maxX + "      " + minX);
-		System.out.println(maxY + "      " + minY);
-		System.out.println(maxZ + "      " + minZ);
-
+		
 		double xc = 0;
 		double yc = 0;
 		double zc = 0;
@@ -175,11 +173,6 @@ public class Model {
 
 		Vert3 center = new Vert3(xc, yc, zc);
 
-		/*
-		 * System.out.println("xc: " + xc); System.out.println("yc: " + yc);
-		 * System.out.println("zc: " + zc);
-		 */
-
 		if (diffX < 0)
 			diffX = diffX * (-1);
 
@@ -189,10 +182,7 @@ public class Model {
 		if (diffZ < 0)
 			diffZ = diffZ * (-1);
 
-		/*
-		 * System.out.println("diffX: " + diffX); System.out.println("diffY: " +
-		 * diffY); System.out.println("diffZ: " + diffZ);
-		 */
+		
 		if (diffX >= diffY && diffX >= diffZ) { // x ist am größten
 			// ganze vertexList durch x
 			diffX = 1 / diffX;
@@ -211,14 +201,9 @@ public class Model {
 		}
 
 		else if (diffZ >= diffX && diffZ >= diffY) { // z ist am größten
-			// ganze VertexList durch z
-
-			System.out.println("Z!!!!" + diffZ);
-			System.out.println("center: " + center.getVertA());
 			// scaleCenter(diffZ , center);
 			diffZ = 1 / diffZ;
 			unitVertex(diffZ, center);
-			System.out.println("center: " + center.getVertA());
 		}
 
 	}
@@ -257,8 +242,7 @@ public class Model {
 		}
 
 		int[] vertIndices = mesh.getAdjacentVertIndeces(toSmoothVertIndex); // sind
-		// vertIndices
-		// ab0?
+		// vertIndices		
 		Vert3 sum = new Vert3();
 		double sumWeights = 0.0;
 
@@ -348,7 +332,7 @@ public class Model {
 		if (vertexListisTouched)
 			buildVBOS(gl);
 
-		//gl.glBindBuffer(GL.GL_ARRAY_BUFFER, 0);
+		
 		gl.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, 0);
 		
 		// Enable vertex arrays
@@ -369,7 +353,7 @@ public class Model {
 
 		gl.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, VBOIndices.get(0));
 
-		gl.glEnable(GL.GL_LIGHTING);
+		
 		gl.glUseProgram(0);
 		
 		//if drawn in solid color mode, lights and dithering are switched off 
@@ -383,25 +367,31 @@ public class Model {
 						GL.GL_UNSIGNED_INT, 0);
 
 			} catch (Exception e) {
+				System.out.println("GL Error: " + gl.glGetError());
 				System.out.println(e.getMessage());
 			}
 			gl.glEnable(GL.GL_LIGHTING);
 			gl.glEnable(GL.GL_DITHER);
 		} else {
 			if(pickedMode){				
+				gl.glEnable(GL.GL_LIGHTING);
 				gl.glColor3f(1, 0, 1);
 			}
 			else{
-				gl.glColor3f(1, 1, 1);
+				if(!SceneGraph.getSceneGraphRef().wireframeMode)
+					gl.glColor3f(1, 1, 1);
 			}
-			try {							
+			try {				
 				gl.glDrawElements(GL.GL_TRIANGLES, nfaceList.size() * 3,
 						GL.GL_UNSIGNED_INT, 0);
 			} catch (Exception e) {
+				System.out.println("GL Error: " + gl.glGetError());
 				System.out.println(e.getMessage());
 			}			
 				
 		}
+		
+		
 
 		//gl.glBindBuffer(GL.GL_ARRAY_BUFFER, 0);
 		gl.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -414,7 +404,10 @@ public class Model {
 	}
 
 	/* Nur einmal laufen lassen möglich? */
-	public void showHoles(GL gl) {
+	/**
+	 * @param gl
+	 */
+	public void highLightHoles(GL gl) {
 
 		if (mesh == null){
 			System.out.println("Mesh not initialized jet!");
@@ -881,7 +874,7 @@ public class Model {
 	}
 
 	/**
-	 * Maps ID to color with splay so that colors are not similar
+	 * Maps ID to color
 	 * 
 	 * @param id
 	 *            ID of Model-Object

@@ -24,10 +24,14 @@ class MyMouseListener implements MouseListener {
 
 	public void mouseClicked(MouseEvent e) {
 		GLCanvas can = (GLCanvas) e.getComponent();
-//		GLContext context = can.getContext();
-//		context.makeCurrent();
-//		GL gl = context.getGL();
-//		
+		
+		/* Dieses Vorgehen erzeugt einen totalen Absturz bzw. Freeze der Applikation
+		GLContext context = can.getContext();
+		context.makeCurrent();
+		GL gl = context.getGL();
+		*/
+ 
+		
 		if (SwingUtilities.isRightMouseButton(e)) {
 			ov.reset();
 			//ov.MouseToWorld(e.getX(), e.getY());			

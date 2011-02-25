@@ -28,12 +28,10 @@ public class Plain {
 	}
 
 	public void buildArrays() {
-		int MATRIXSIZE = 4;
+		int MATRIXSIZE = 10;
 
 		int i = 0;
 		int j = 0;
-
-		IntBuffer matrix = BufferUtil.newIntBuffer(MATRIXSIZE * MATRIXSIZE);
 
 		for (i = 0; i < MATRIXSIZE; i++) {
 			for (j = 0; j < MATRIXSIZE; j++) {
@@ -79,7 +77,9 @@ public class Plain {
 			gl.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_LINE); // WireFrame
 			
 			gl.glColor3f(1.0f, 1.0f, 1.0f);
-			gl.glLineWidth(2.0f);
+			gl.glLineWidth(1.0f);
+			gl.glTranslated(-1.125, -1, 0);
+			gl.glRotated(90, 1, 0, 0);
 									
 			gl.glDrawElements(GL.GL_QUADS, faceList.size() * 4,
 					GL.GL_UNSIGNED_INT, 0);
@@ -102,21 +102,8 @@ public class Plain {
 	}
 	
 	public void drawAxes(GL gl){
-		GLU glu = new GLU();
-		
-		//gl.glClearColor(1.0f, 1.0f, 1.0f, 1);
-		//gl.glClear(GL.GL_COLOR_BUFFER_BIT);
-		
-//		gl.glMatrixMode(GL.GL_PROJECTION);
-//		gl.glLoadIdentity();
-//
-//		/* use this length so that camera is 1 unit away from origin */
-//		double dist = Math.sqrt(1 / 3.0);
-//
-//		glu.gluLookAt(dist, dist, dist,  /* position of camera */
-//		          0.0,  0.0,  0.0,   /* where camera is pointing at */
-//		          0.0,  1.0,  0.0);  /* which direction is up */
-//		
+
+	
 		gl.glMatrixMode(GL.GL_MODELVIEW);
 		gl.glDisable(GL.GL_LIGHTING);
 		gl.glLineWidth(1);

@@ -74,8 +74,7 @@ public class ObjViewer extends JFrame implements GLEventListener {
 	/*
 	 * ARcBALL
 	 */
-	private GLU glu = new GLU();
-
+	
 	private Matrix4f LastRot = new Matrix4f();
 	private Matrix4f ThisRot = new Matrix4f();
 	private final Object matrixLock = new Object();
@@ -300,7 +299,7 @@ public class ObjViewer extends JFrame implements GLEventListener {
 		 * Control the appearance of the drawn object
 		 */
 
-		final JMenu appearanceMenu = new JMenu("Apperance");
+		final JMenu appearanceMenu = new JMenu("Appearance");
 
 		/*
 		 * SHADER Smooth
@@ -319,6 +318,24 @@ public class ObjViewer extends JFrame implements GLEventListener {
 
 		});
 
+		/*
+		 * Wireframe Mode
+		 */
+		JMenuItem wMenuItem = new JMenuItem("Toggle wireframe");
+		wMenuItem.setMnemonic(KeyEvent.VK_W);
+
+		wMenuItem.setToolTipText("Toggle Wireframe Mode");
+
+		appearanceMenu.add(wMenuItem);
+
+		wMenuItem.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent event) {
+				sceneGraph.toggleWireframe();
+			}
+
+		});
+		
+		
 		/*
 		 * SHADER Flat
 		 */
@@ -593,16 +610,14 @@ public class ObjViewer extends JFrame implements GLEventListener {
 				GL.GL_RGB, GL.GL_UNSIGNED_BYTE, pixel);
 
 		/**
-		 * Übernommen von Henning Tjaden
+		 * Idea by Henning Tjaden
 		 */
 		int modelId = 0;
 		modelId |= 255 & pixel.get(0);
 		modelId |= (255 & pixel.get(1)) << 8;
 		modelId |= (255 & pixel.get(2)) << 16;
-
-		// System.out.println("gepickte Farbe: " + (255&pixel.get(0)) + " " +
-		// (255&pixel.get(1)<<8) + " " + (255&pixel.get(2)<<16));
-		// Hintergrundfarbe entspricht 5000268
+		
+		// Background color equals 5000268
 		if (modelId == 5000268)
 			modelId = -1;
 
@@ -621,9 +636,7 @@ public class ObjViewer extends JFrame implements GLEventListener {
 
 		GL gl = drawable.getGL();
 		GLU glu = new GLU();
-		GLUT glut = new GLUT();
-
-		
+		GLUT glut = new GLUT();		
 		
 		/*
 		 * check for to-load Models
@@ -632,8 +645,7 @@ public class ObjViewer extends JFrame implements GLEventListener {
 			Model model = new Model(gl, sceneGraph.popFromInitList());
 			sceneGraph.addNode(model, 0);
 		}
-		
-		
+				
 
 		/*
 		 * ############# ARCBALL STUFF
@@ -665,11 +677,12 @@ public class ObjViewer extends JFrame implements GLEventListener {
 		 * arcball stuff
 		 */
 
-		//gl.glPushMatrix(); // NEW: Prepare Dynamic Transform
+		gl.glPushMatrix(); // NEW: Prepare Dynamic Transform
 		//gl.glMultMatrixf(matrix, 0); // NEW: Apply Dynamic Transform
+		gl.glLoadIdentity();
+		plain.draw(gl);
 
-		//gl.glPopMatrix(); // NEW: Unapply Dynamic Transform
-
+		gl.glPopMatrix(); // NEW: Unapply Dynamic Transform
 		gl.glLoadIdentity(); // Reset The Current Modelview Matrix
 
 		gl.glPushMatrix(); // NEW: Prepare Dynamic Transform
@@ -685,16 +698,16 @@ public class ObjViewer extends JFrame implements GLEventListener {
 			//this.startPan(panPt);
 		}
 
-		if (shadingData.isWireframe()) {
+		if (sceneGraph.wireframeMode) {
 			
 			gl.glLineWidth(3);			
-			gl.glDisable(GL.GL_LIGHTING);
+			gl.glDisable(GL.GL_LIGHTING);			
 			gl.glColor3f(1, 0, 0);
 			gl.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_LINE); // WireFrame
 				//gl.glScalef(scaling+(scaling*0.01f), scaling+(scaling*0.01f), scaling+(scaling*0.01f));
-				sceneGraph.draw(gl, this.PICKED);
-			gl.glEnable(GL.GL_LIGHTING);
+				sceneGraph.draw(gl, this.PICKED);			
 			gl.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL);
+			gl.glEnable(GL.GL_LIGHTING);
 		}
 
 		gl.glPopMatrix(); // NEW: Unapply Dynamic Transform

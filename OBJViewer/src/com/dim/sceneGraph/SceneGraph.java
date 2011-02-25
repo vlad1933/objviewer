@@ -1,5 +1,6 @@
 package com.dim.sceneGraph;
 
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 
 import javax.media.opengl.GL;
@@ -14,8 +15,16 @@ public class SceneGraph {
 	public SgNode rootNode = new SgNode(null);
 	private ObjViewer objViewerRef = null;
 	private int currentPickedModelId = -1;
+	public boolean wireframeMode = false;
+	
+	private static SceneGraph sgRef = null;
+
+	public static SceneGraph getSceneGraphRef() {		
+		return sgRef;
+	}
 	
 	public SceneGraph(ObjViewer ov){
+		SceneGraph.sgRef = this;
 		this.objViewerRef = ov;
 		nodeList.add(rootNode);
 	}
@@ -133,11 +142,11 @@ public class SceneGraph {
 			
 			//if highlightHoles flag is true the holes in the mesh are shown
 			if(this.objViewerRef.highlightMeshHoles)
-				node.model.showHoles(gl);
+				node.model.highLightHoles(gl);
 		}
 		
-		if(currentPickedModelId != -1)
-			getNodeByModelId(currentPickedModelId).model.draw(gl, false, true);
+		//if(currentPickedModelId != -1)
+			//getNodeByModelId(currentPickedModelId).model.draw(gl, false, true);
 	}
 	
 	public boolean modelIsPicked(SgNode node){
@@ -176,6 +185,13 @@ public class SceneGraph {
 		}
 		
 		return "Nothing found!";  	
+	}
+	
+	public void toggleWireframe(){
+		if(this.wireframeMode)
+			this.wireframeMode = false;
+		else
+			this.wireframeMode = true;
 	}
 }
 
