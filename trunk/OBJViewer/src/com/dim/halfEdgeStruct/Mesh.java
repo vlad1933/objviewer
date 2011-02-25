@@ -243,11 +243,7 @@ public class Mesh implements Runnable{
 	}
 	
 	
-	public int[] getAdjacentVertIndeces(int vert){
-		if(vert == 240){
-			System.out.println(Model.getModelref().vertexList.get(vert));
-			System.out.println("uff");
-		}
+	public int[] getAdjacentVertIndeces(int vert){		
 		//all adges pointing to the specified point
 		ArrayList<HE_edge> adjEdges = new ArrayList<HE_edge>();
 		
