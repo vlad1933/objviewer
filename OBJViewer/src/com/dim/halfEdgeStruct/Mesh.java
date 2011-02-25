@@ -17,16 +17,12 @@ public class Mesh implements Runnable{
 	private ArrayList<Integer> ptrPList = new ArrayList<Integer>();
 	
 	private boolean dataStructureReady = false;
-	
-	
-	//public int[][] faceList = { {0,1,3}, {0,3,2}, {2,3,4} };
-	//public int[][] faceList = {{0,6,4}, {0,2,6}, {0,3,2}, {0,1,3}, {2,7,6}, {2,3,7}, {4,6,7}, {4,7,5}, {0,4,5}, {0,5,1}, {1,5,7}, {1,7,3} };
 		
 
 	public Mesh(int[][] fl){
 		
 		this.faceList = fl;
-		System.out.println("in mesh constructor");
+		//System.out.println("in mesh constructor");
 		
 	}
 	
@@ -40,6 +36,9 @@ public class Mesh implements Runnable{
 	}
 	
 	@Override
+	/**
+	 * Builds the Half-Edge Mesh
+	 */
 	public void run() {
 		// TODO Auto-generated method stub
 
@@ -76,14 +75,14 @@ public class Mesh implements Runnable{
 				 * Vorgänger
 				 */
 				j = (i + 2) % 3; //j ist vorgänger-punkt von i								
-				if(faceList[l][j] > faceList[l][i]){ 	//ist der Punkt größer als der PList-Wert(int Indizee v. pList) wird er rausgeschmissen 
+				if(faceList[l][j] > faceList[l][i]){ 	//ist der Punkt größer als der PList-Wert(int Indize v. pList) wird er rausgeschmissen 
 					pList pl = new pList(faceList[l][j], new HE_face(l));
 					//auf vorhandene gegenkante prüfen
 					if(!plCompare(pl,faceList[l][i]))
 					{
 						//System.out.println("pl: " + pl);
 						PList.add(pl);	//speichern des pList Objekts in einer Liste				
-						ptrPList.add(faceList[l][i]);	//speichern des Indizees - quasi Startpunkt
+						ptrPList.add(faceList[l][i]);	//speichern des Indizes - quasi Startpunkt
 																		
 					}
 					else{
@@ -116,7 +115,7 @@ public class Mesh implements Runnable{
 					{
 						//System.out.println("pl: " + pl_);
 						PList.add(pl_);	//speichern des pList Objekts in einer Liste				
-						ptrPList.add(faceList[l][i]);	//speichern des Indizees
+						ptrPList.add(faceList[l][i]);	//speichern des Indizes
 						
 					}
 					else{
@@ -160,25 +159,13 @@ public class Mesh implements Runnable{
 		
 		*/
 		
-		if(false){
-			for(int x = 0; x < edgeList.size(); x++){
-				System.out.println(x + ": " + "edge: " + edgeList.get(x));			
-			}
-			System.out.println(edgeList.size());
-		}
 		
 		this.dataStructureReady = true;
 		
-		/*
-		int[] points = this.getAdjacentVertIndeces(0);
-		for(int p : points){
-			System.out.println(p);
-		}
-		*/
 	}	
 	
 	/**
-	 * Suche und setze die PairEdge aus der edgeList
+	 * Find and set PairEdge from edgeList
 	 * @param begin_point faceList[l][i]
 	 * @param edge	Pair Edge
 	 * @return
@@ -200,14 +187,13 @@ public class Mesh implements Runnable{
 	}
 
 	/**
-	 * Wir suchen nach einer Gegenkante in PList Liste. Bei Fund return true. 
+	 * Searching for PairEdge in PList list. If found it returning true 
 	 * @param pl
-	 * @param index Startpunkt im Face 
-	 * @return true wenn gefunden, false wenn nicht 
+	 * @param index starting point in Face 
+	 * @return true if found 
 	 */
 	public boolean plCompare(pList pl, int index){
-		int i = 0;
-		int k = 0;
+		int i = 0;		
 		
 		for(i = 0; i < PList.size(); i++){			
 			if(PList.get(i).getPoint() == pl.getPoint() && index == ptrPList.get(i))
@@ -242,7 +228,11 @@ public class Mesh implements Runnable{
 		return pointsArr;
 	}
 	
-	
+	/**
+	 * Returns all neighbour points of the by "vert" specified point 
+	 * @param vert index of vertex that will be smoothed
+	 * @return vertex indices (points) or null if nothing found
+	 */
 	public int[] getAdjacentVertIndeces(int vert){		
 		//all adges pointing to the specified point
 		ArrayList<HE_edge> adjEdges = new ArrayList<HE_edge>();
@@ -281,10 +271,9 @@ public class Mesh implements Runnable{
 		int[] points = new int[adjEdges.size()];
 		int i = 0;
 		for(HE_edge e : adjEdges){
-			if(e.getPair() == null)
-				System.out.println("ERROR in mesh structure?!");;
-			points[i] = e.getPair().getVert();
-			//points[i] = e.getPair().starting_point;
+			if(e.getPair() == null) //not needed
+				return null;
+			points[i] = e.getPair().getVert();			
 			i++;
 		}
 		

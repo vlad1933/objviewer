@@ -15,9 +15,6 @@ import com.sun.opengl.util.BufferUtil;
 
 import java.util.regex.*;
 
-/*
- * Fourth Revision! 12JAn2011
- * */
 
 public class Model {
 	// Buffer for the vertex array
@@ -30,8 +27,7 @@ public class Model {
 	public String fileName = " ";
 
 	private Mesh mesh = null;
-
-	public static boolean DEBUG = false;
+	
 	public static int _ID = 1;
 	public int id;
 	private static Model modelRef;
@@ -45,10 +41,7 @@ public class Model {
 	// Array of vertices building the house
 	public ArrayList<Vert3> vertexList = new ArrayList<Vert3>();
 	private ArrayList<Vert3> normalList = new ArrayList<Vert3>();
-	// deprecated
-	private ArrayList<Face3> faceList = new ArrayList<Face3>();
-	// new faceList is used in future
-	private ArrayList<Facette> nfaceList = new ArrayList<Facette>();
+	private ArrayList<Facette> faceList = new ArrayList<Facette>();
 	private ArrayList<Vert3> texcoordList = new ArrayList<Vert3>();
 
 	public Pattern fpat = Pattern
@@ -67,7 +60,7 @@ public class Model {
 		initModelDimension();
 		buildVBOS(gl);
 
-		if (nfaceList.size() > 0) {
+		if (faceList.size() > 0) {
 			createHalfEdgeMesh();
 		} else {
 			System.out.println("FaceList unfilled - Mesh not created!");
@@ -85,12 +78,12 @@ public class Model {
 		 * gebracht und übergeben.
 		 */
 
-		int[][] faceArray = new int[nfaceList.size()][3];
+		int[][] faceArray = new int[faceList.size()][3];
 
-		for (int i = 0; i < nfaceList.size(); i++) {
-			faceArray[i][0] = nfaceList.get(i).getVertInd1();
-			faceArray[i][1] = nfaceList.get(i).getVertInd2();
-			faceArray[i][2] = nfaceList.get(i).getVertInd3();
+		for (int i = 0; i < faceList.size(); i++) {
+			faceArray[i][0] = faceList.get(i).getVertInd1();
+			faceArray[i][1] = faceList.get(i).getVertInd2();
+			faceArray[i][2] = faceList.get(i).getVertInd3();
 		}
 
 		this.mesh = new Mesh(faceArray);
@@ -363,7 +356,7 @@ public class Model {
 			gl.glColor3f(mapIdToColor(this.id)[0], mapIdToColor(this.id)[1], mapIdToColor(this.id)[2]);
 			
 			try {
-				gl.glDrawElements(GL.GL_TRIANGLES, nfaceList.size() * 3,
+				gl.glDrawElements(GL.GL_TRIANGLES, faceList.size() * 3,
 						GL.GL_UNSIGNED_INT, 0);
 
 			} catch (Exception e) {
@@ -382,7 +375,7 @@ public class Model {
 					gl.glColor3f(1, 1, 1);
 			}
 			try {				
-				gl.glDrawElements(GL.GL_TRIANGLES, nfaceList.size() * 3,
+				gl.glDrawElements(GL.GL_TRIANGLES, faceList.size() * 3,
 						GL.GL_UNSIGNED_INT, 0);
 			} catch (Exception e) {
 				System.out.println("GL Error: " + gl.glGetError());
@@ -452,7 +445,7 @@ public class Model {
 		normalBuffer = BufferUtil.newDoubleBuffer(vertexList.size() * 3);
 
 		texcoordBuffer = BufferUtil.newDoubleBuffer(vertexList.size() * 2);
-		indices = BufferUtil.newIntBuffer(nfaceList.size() * 3);
+		indices = BufferUtil.newIntBuffer(faceList.size() * 3);
 
 		for (int i = 0; i < vertexList.size(); i++) {
 			Vert3 vert = vertexList.get(i);
@@ -470,21 +463,21 @@ public class Model {
 		for (int i = 0; i < vertexList.size(); i++)
 			dummyList.add(new Vert3());
 
-		for (int i = 0; i < nfaceList.size(); i++) {
+		for (int i = 0; i < faceList.size(); i++) {
 			/* Filling in the normals */
-			Facette face = nfaceList.get(i);
+			Facette face = faceList.get(i);
 
 			int normalIndex = face.getNormInd1();
 			int vertIndex = face.getVertInd1();
 			Vert3 normal1 = normalList.get(normalIndex);
 			dummyList.set(vertIndex, normal1);
 
-			normalIndex = nfaceList.get(i).getNormInd2();
+			normalIndex = faceList.get(i).getNormInd2();
 			vertIndex = face.getVertInd2();
 			Vert3 normal2 = normalList.get(normalIndex);
 			dummyList.set(vertIndex, normal2);
 
-			normalIndex = nfaceList.get(i).getNormInd3();
+			normalIndex = faceList.get(i).getNormInd3();
 			vertIndex = face.getVertInd3();
 			Vert3 normal3 = normalList.get(normalIndex);
 			dummyList.set(vertIndex, normal3);
@@ -519,7 +512,7 @@ public class Model {
 		/*
 		 * Indicees
 		 */
-		for (Facette f : nfaceList) {
+		for (Facette f : faceList) {
 			/*
 			 * Indizees eines Face eintragen
 			 */
@@ -566,19 +559,9 @@ public class Model {
 		VBOIndices = BufferUtil.newIntBuffer(1);
 		gl.glGenBuffers(1, VBOIndices);
 		gl.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, VBOIndices.get(0));
-		gl.glBufferData(GL.GL_ELEMENT_ARRAY_BUFFER, nfaceList.size() * 3
+		gl.glBufferData(GL.GL_ELEMENT_ARRAY_BUFFER, faceList.size() * 3
 				* BufferUtil.SIZEOF_INT, indices, GL.GL_STATIC_DRAW);
 
-		if (ObjViewer.DEBUG) {
-			printBuffer(vertexBuffer, " vertexBfr");
-			printBuffer(normalBuffer, " normalBuffer");
-			printBuffer(texcoordBuffer, " tex coordBfr");
-			printList(nfaceList, " face List ");
-			printBuffer(indices, " index Bfr ");
-		}
-
-		// printList(vertexList, "VertexListe!");
-		// this.debugPrintFaces();
 	}
 
 	private void loadModel(String name) {
@@ -619,7 +602,7 @@ public class Model {
 			int[] nullArray = { 1, 1, 1 }; // weil indizee im Konstruktor
 			// dekrementiert wird!
 
-			nfaceList.add(new Facette(nullArray, nullArray, vertsArray));
+			faceList.add(new Facette(nullArray, nullArray, vertsArray));
 			return;
 		}
 
@@ -669,20 +652,12 @@ public class Model {
 			}
 		}
 
-		if (ObjViewer.DEBUG) {
-			// System.out.println(line);
-			System.out.println("Normalenindizes: " + n1 + " " + n2 + " " + n3);
-			System.out.println("Vertexindizes: " + vert1 + " " + vert2 + " "
-					+ vert3);
-			System.out.println("TexKoordinatenindizes: " + tc1 + " " + tc2
-					+ " " + tc3);
-		}
 
 		int[] normInds = { n1, n2, n3 };
 		int[] texInds = { tc1, tc2, tc3 };
 		int[] vertInds = { vert1, vert2, vert3 };
 
-		nfaceList.add(new Facette(normInds, texInds, vertInds));
+		faceList.add(new Facette(normInds, texInds, vertInds));
 
 	}
 
@@ -731,12 +706,6 @@ public class Model {
 		if (normalList.size() == 0)
 			computeNormals();
 
-		if (ObjViewer.DEBUG) {
-			System.out.println("file read");
-			System.out.println("var numFaces: " + numFaces);
-			System.out.println("old numFaces: " + faceList.size());
-			System.out.println("new numFaces: " + nfaceList.size());
-		}
 	}
 
 	private void extractVert(String line) {
@@ -787,13 +756,13 @@ public class Model {
 		System.out.println("Computing the Normals!");
 
 		// solange wie faceList lang ist
-		for (int i = 0; i < nfaceList.size(); i++) {
+		for (int i = 0; i < faceList.size(); i++) {
 			Vert3 v1 = new Vert3(0, 0, 0);
 			Vert3 v2 = new Vert3(0, 0, 0);
 			Vert3 v3 = new Vert3(0, 0, 0);
 			Vert3 norm = new Vert3(0, 0, 0);
 
-			int[] vertIndices = nfaceList.get(i).getVertsAsArray();
+			int[] vertIndices = faceList.get(i).getVertsAsArray();
 
 			v1 = vertexList.get(vertIndices[0]);
 			v2 = vertexList.get(vertIndices[1]);
@@ -804,7 +773,7 @@ public class Model {
 			// v1)));
 			// norm = Vert3.normalizeVector(norm);
 
-			nfaceList.get(i).setNormIndex(i);
+			faceList.get(i).setNormIndex(i);
 
 			normalList.add(norm);
 			normalList.add(norm);
@@ -849,12 +818,10 @@ public class Model {
 
 		gl.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, VBOIndices.get(0));
 
-		if (DEBUG) {
-			printBuffer(VBOIndices, "indizee VBO");
-		}
+
 
 		try {
-			gl.glDrawElements(GL.GL_TRIANGLES, nfaceList.size() * 3,
+			gl.glDrawElements(GL.GL_TRIANGLES, faceList.size() * 3,
 					GL.GL_UNSIGNED_INT, 0);
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
@@ -888,8 +855,7 @@ public class Model {
 		color[2] = (255 & ((id) >> 16)) / 255f;
 		color[3] = 1.0f;
 
-		System.out.println("    from id:" + id + "color: " + color[0] + " "
-				+ color[1] + " " + color[2]);
+		//System.out.println("    from id:" + id + "color: " + color[0] + " " + color[1] + " " + color[2]);
 
 		return color;
 	}
@@ -941,7 +907,7 @@ public class Model {
 
 	public void debugPrintFaces() {
 		System.out.print("{");
-		for (Facette f : this.nfaceList) {
+		for (Facette f : this.faceList) {
 			System.out.print("{" + f.getVertInd1() + "," + f.getVertInd2()
 					+ "," + f.getVertInd3() + "}, ");
 		}

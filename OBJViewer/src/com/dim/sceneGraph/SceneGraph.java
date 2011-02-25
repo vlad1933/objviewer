@@ -1,6 +1,6 @@
 package com.dim.sceneGraph;
 
-import java.nio.IntBuffer;
+
 import java.util.ArrayList;
 
 import javax.media.opengl.GL;
@@ -41,7 +41,7 @@ public class SceneGraph {
 	
 	/**
 	 * Is there a Model to init?
-	 * @return true if there is something to init, false if there is nothing to init. 
+	 * @return true if there is something to init in initList, false if there is nothing to init. 
 	 */
 	public boolean checkForInitList(){
 		if(initList.size() == 0){
@@ -145,12 +145,10 @@ public class SceneGraph {
 				node.model.highLightHoles(gl);
 		}
 		
-		//if(currentPickedModelId != -1)
-			//getNodeByModelId(currentPickedModelId).model.draw(gl, false, true);
 	}
 	
 	public boolean modelIsPicked(SgNode node){
-		System.out.println("picked: " + currentPickedModelId);
+		//System.out.println("picked: " + currentPickedModelId);
 		
 		for(int i = 1; i < nodeList.size(); i++){
 			if(node.model.id == this.currentPickedModelId)
@@ -160,6 +158,9 @@ public class SceneGraph {
 		return false;
 	}
 	
+	/**
+	 * Determines if current Model is picked and triggers its smoothVerts Methods
+	 */
 	public void smoothModel(){
 		if(currentPickedModelId == -1){
 			System.out.println("No Model is picked, can't smooth");

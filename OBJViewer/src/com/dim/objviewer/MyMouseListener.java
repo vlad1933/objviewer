@@ -6,16 +6,12 @@ import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 
-import javax.media.opengl.GL;
 import javax.media.opengl.GLCanvas;
-import javax.media.opengl.GLContext;
 import javax.swing.SwingUtilities;
 
 class MyMouseListener implements MouseListener {	
 	public ObjViewer ov;
 
-	// private int dragStartX, dragStartY;
-	// double viewRotX, viewRotY;
 	
 	public MyMouseListener(ObjViewer ov) {
 		// TODO Auto-generated method stub		
@@ -29,13 +25,11 @@ class MyMouseListener implements MouseListener {
 		GLContext context = can.getContext();
 		context.makeCurrent();
 		GL gl = context.getGL();
-		*/
- 
+		*/ 
 		
 		if (SwingUtilities.isRightMouseButton(e)) {
 			ov.reset();
-			//ov.MouseToWorld(e.getX(), e.getY());			
-			
+						
 			can.display();
 		} else if (SwingUtilities.isLeftMouseButton(e)) {	
 			ov.PICKED = true;
@@ -52,7 +46,6 @@ class MyMouseListener implements MouseListener {
 
 	public void mouseReleased(MouseEvent e) {
 		if (SwingUtilities.isRightMouseButton(e)) {
-			ov.PANNING = false;
 			System.out.println("panning ist false");
 		}
 	}
@@ -63,9 +56,7 @@ class MyMouseListener implements MouseListener {
 			ov.startDrag(e.getPoint());			
 		}
 		if (SwingUtilities.isRightMouseButton(e)) {
-			ov.PANNING = true;			
-			System.out.println("panning ist true");
-			ov.panPt = e.getPoint();
+			
 		}
 	}
 
@@ -89,11 +80,6 @@ class MyMouseMotionListener implements MouseMotionListener {
 		if (SwingUtilities.isLeftMouseButton(e)) {
 			ov.drag(e.getPoint());	
 			can.display();
-		} else if (SwingUtilities.isRightMouseButton(e)) {
-			//ov.dragScale(e.getPoint());
-			//ov.startPan(e.getPoint());
-			ov.panPt = e.getPoint();
-			can.display();
 		}
 	}
 }
@@ -116,11 +102,6 @@ class MyMouseWheelListener implements MouseWheelListener {
 		}
 		GLCanvas can = (GLCanvas) (e.getComponent());
 		can.display();
-	}
-
-	public int foogetWheelRotation(MouseWheelEvent e) {
-
-		return e.getScrollAmount();
 	}
 
 }
