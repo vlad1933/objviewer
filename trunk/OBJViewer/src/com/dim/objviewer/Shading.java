@@ -5,7 +5,6 @@ import javax.media.opengl.GL;
 public class Shading {
 	
 	private int shadingmode;
-	private boolean wireframeEnabled = false;
 	private boolean shadingEnabled = false;
 	
 	
@@ -36,33 +35,10 @@ public class Shading {
 		shadingEnabled = false;
 	}
 	
-	public void resetWireframe(){
-		this.wireframeEnabled = false;
-	}
-
 
 	public boolean isShadingEnabled() {
 		return shadingEnabled;
 	}
-
-	public boolean isWireframe() {
-		return wireframeEnabled;
-	}
-
-	public void setWireframe(boolean wireframe) {
-		this.wireframeEnabled = wireframe;
-		System.out.println("wire frame on ->" + wireframe);
-	}
-	
-	public void toggleWireframe(){
-		if(isWireframe())
-			resetWireframe();
-		else
-			setWireframe(true);
-	}
-
-
-	
 	
 	
 }

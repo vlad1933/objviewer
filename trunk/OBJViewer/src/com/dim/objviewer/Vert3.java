@@ -3,7 +3,6 @@ package com.dim.objviewer;
 public class Vert3 {
 	private double a,b,c;
 	
-	
 
 	public Vert3(double a, double b,double c){
 		this.a = a;
@@ -104,14 +103,6 @@ public class Vert3 {
 		return normal;
 	}
 	
-	public void makeAbsolute(){
-		if(this.a < 0)			
-			this.a *= -1;
-		if(this.b < 0)
-			this.b *= -1;
-		if(this.c < 0)
-			this.c *= -1;
-	}
 	
 	public static Vert3 multiply(double scalar, Vert3 vert){
 		Vert3 result = new Vert3();
@@ -121,21 +112,7 @@ public class Vert3 {
 		return result;
 	}
 	
-	
-/*	// Normalize pIn vector into pOut
-	bool VectorNormalize (GLpoint *pIn, GLpoint *pOut)
-	{
-	   GLfloat len = (GLfloat)(sqrt(	sqr(pIn->x) + sqr(pIn->y) + sqr(pIn->z)));
-	   if (len)
-	   {
-	      pOut->x = pIn->x / len;
-	      pOut->y = pIn->y / len;
-	      pOut->z = pIn->z / len;
-	      return true;
-	   }
-	   return false;
-	}
-*/
+
 	public static Vert3 normalizeVector(Vert3 vert){
 		Double len = (Math.sqrt(
 				Math.sqrt(vert.getVertA()) + 

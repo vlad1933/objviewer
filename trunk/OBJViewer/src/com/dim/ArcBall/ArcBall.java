@@ -5,6 +5,10 @@ import java.awt.Point;
 import javax.media.opengl.*;
 import javax.media.opengl.glu.GLU;
 
+/**
+ * Tutorial and code taken from Nehe Lesson 48
+ *
+ */
 public class ArcBall {
     private static final float Epsilon = 1.0e-5f;
 

@@ -44,16 +44,12 @@ public class ObjViewer extends JFrame implements GLEventListener {
 
 	public float WINWIDTH = 1000.0f;
 	public float WINHEIGHT = 800.0f;
-	public static boolean DEBUG = false;
 
 	/*
 	 * RENDERING STATES
 	 */
 	public boolean highlightMeshHoles = false;
 	public boolean PICKED = false;
-	
-	public boolean PANNING = false;
-	public Point panPt = null;
 
 	private Plain plain;
 	private GLCanvas canvas = null;
@@ -68,32 +64,22 @@ public class ObjViewer extends JFrame implements GLEventListener {
 
 	private SceneGraph sceneGraph;
 	private Point lastPickPoint = null;
-	
-	public GLContext cancon;
 
 	/*
 	 * ARcBALL
-	 */
-	
+	 */	
 	private Matrix4f LastRot = new Matrix4f();
 	private Matrix4f ThisRot = new Matrix4f();
 	private final Object matrixLock = new Object();
 	private float[] matrix = new float[16];
 
-	public ArcBall arcBall = new ArcBall(this.WINWIDTH, this.WINHEIGHT); // NEW:
-																			// ArcBall
-																			// Instance
+	public ArcBall arcBall = new ArcBall(this.WINWIDTH, this.WINHEIGHT);
 
 	public ObjViewer() {
-		super("OpenGL JOGL VIEWER");
-		/*
-		 * GLCanvas reports the following four events to a registered Listener:
-		 * - init() - display() - displayChanged() - reshape() Therefore we
-		 * implement the GLEventListener interface
-		 */
+		super("Dimitr Martens - 3D Computergrafik");
+		
 		canvas = new GLCanvas();
-		//canvas.getContext().makeCurrent();
-
+		
 		shadingData = new Shading();
 
 		canvas.addGLEventListener(this);
@@ -102,11 +88,11 @@ public class ObjViewer extends JFrame implements GLEventListener {
 		canvas.addMouseMotionListener(new MyMouseMotionListener(this));
 		canvas.addMouseWheelListener(new MyMouseWheelListener(this));
 
+		//InitUI inits the UI and returns a JMenuBar Object
 		this.add(initUI(), BorderLayout.NORTH);
+		
 		this.add(canvas, BorderLayout.CENTER);
 		
-		this.cancon = canvas.getContext();
-
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 	}
@@ -118,13 +104,8 @@ public class ObjViewer extends JFrame implements GLEventListener {
 
 		sceneGraph = new SceneGraph(this);
 
-		// ONLY FOR DEBUG!
-		//sceneGraph.addNode(new Model(gl, "models/bunny.obj"), 0);
-		//sceneGraph.addNode(new Model(gl, "models/elephant.obj"), 0);
-
 		// Set background color
 		gl.glClearColor(0.3F, 0.3F, 0.3F, 1.0F);
-
 		gl.glEnable(GL.GL_LIGHTING);
 		// Switch on light0
 		gl.glEnable(GL.GL_LIGHT0);
@@ -135,28 +116,18 @@ public class ObjViewer extends JFrame implements GLEventListener {
 		// Enable color material
 		gl.glEnable(GL.GL_COLOR_MATERIAL);
 
+		//Bottom plain
 		this.plain = new Plain(gl);
 
+		//scaling factor which is used for scaling the models
 		scaling = 1.0f;
 
-		// try {
-		// cornette(drawable);
-		// } catch (IOException e) {
-		// // TODO Auto-generated catch block
-		// e.printStackTrace();
-		// }
-
-		/*
-		 * ArcBALL STUFF
-		 */
-
-		// Start Of User Initialization
+		// ArcBall: Start Of User Initialization
 		LastRot.setIdentity(); // Reset Rotation
 		ThisRot.setIdentity(); // Reset Rotation
 		ThisRot.get(matrix);
 
-		gl.glDepthFunc(GL.GL_LEQUAL); // The Type Of Depth Testing (Less Or
-										// Equal)
+		gl.glDepthFunc(GL.GL_LEQUAL); // The Type Of Depth Testing (Less Or Equal)
 		gl.glEnable(GL.GL_DEPTH_TEST); // Enable Depth Testing
 		// Set Perspective Calculations To Most Accurate
 		gl.glHint(GL.GL_PERSPECTIVE_CORRECTION_HINT, GL.GL_NICEST);
@@ -164,8 +135,7 @@ public class ObjViewer extends JFrame implements GLEventListener {
 	}
 
 		
-	// ######################## ARCBALL METHODS
-	// ########################################
+	// ######################## ARCBALL METHODS ########################################
 	void reset() {
 		synchronized (matrixLock) {
 			LastRot.setIdentity(); // Reset Rotation
@@ -194,20 +164,10 @@ public class ObjViewer extends JFrame implements GLEventListener {
 		}
 	}
 
-	public void startPan(Point MousePt) {
-		if(!PANNING)
-			return;
-		
-		double[] worldCoords = MouseToWorld(this.panPt.x, this.panPt.y);
-		translateModel((float)worldCoords[0], (float)worldCoords[1]);
-				
-	}
 	
-	private void translateModel(float x, float y){
-		
-		gl.glTranslatef(x, y, 0);
-	}
-
+	// ######################## END ARCBALL METHODS ###########################################
+	
+	
 	public String readFile(File file) {
 
 		StringBuffer fileBuffer = null;
@@ -232,8 +192,10 @@ public class ObjViewer extends JFrame implements GLEventListener {
 		return fileString;
 	}
 
-	// ######################## END ARCBALL METHODS
-	// ########################################
+	/**
+	 * Inits the UI
+	 * @return JMenuBar
+	 */
 	public final JMenuBar initUI() {
 
 		JMenuBar menubar = new JMenuBar();
@@ -278,7 +240,7 @@ public class ObjViewer extends JFrame implements GLEventListener {
 		/*
 		 * EXIT Button
 		 */
-		// JMenuItem eMenuItem = new JMenuItem("Exit");
+		
 		JMenuItem eMenuItem = new JMenuItem("Exit", new ImageIcon(
 				"images/exit.png"));
 
@@ -396,8 +358,6 @@ public class ObjViewer extends JFrame implements GLEventListener {
 
 		menubar.add(appearanceMenu);
 
-		// setJMenuBar(menubar);
-
 		setTitle("Dimitri Martens - Interaktive 3D-Computergrafik");
 		setSize((int) WINWIDTH, (int) WINHEIGHT);
 		setLocationRelativeTo(null);
@@ -409,7 +369,7 @@ public class ObjViewer extends JFrame implements GLEventListener {
 
 	/**
 	 * Push OBJ-File-Path into initList of the SceneGraph so it can be
-	 * initialized by the next Display() call
+	 * initialized by the next OBJViewer.display() call
 	 * 
 	 * @param filePath
 	 */
@@ -417,56 +377,13 @@ public class ObjViewer extends JFrame implements GLEventListener {
 		sceneGraph.pushIntoInitList(filePath);
 	}
 
+	/**
+	 * Is used to trigger a redrawing of canvas
+	 */
 	public void triggerCanvasDisplay() {
 		this.canvas.display();
 	}
 
-	// ######################## SHADER STUFF
-	// ###############################################
-	public void cornette(GLAutoDrawable drawable) throws IOException {
-		GL gl = drawable.getGL();
-
-		int v = gl.glCreateShader(GL.GL_VERTEX_SHADER);
-		int f = gl.glCreateShader(GL.GL_FRAGMENT_SHADER);
-
-		BufferedReader brv = new BufferedReader(new FileReader(
-				"shaders/vert.glsl"));// "shaders/vert.glsl"));
-		String vsrc = "";
-		String line;
-		while ((line = brv.readLine()) != null) {
-			vsrc += line + "\n";
-		}
-
-		String[] vs = { vsrc };
-		gl.glShaderSource(v, 1, vs, null);
-		gl.glCompileShader(v);
-
-		IntBuffer success = BufferUtil.newIntBuffer(1);
-		gl.glGetObjectParameterivARB(shaderprogram,
-				GL.GL_OBJECT_COMPILE_STATUS_ARB, success);
-		if (success.get(0) == 0)
-			System.out.println("Failed to compile shader source:\n" + vs[0]);
-
-		BufferedReader brf = new BufferedReader(new FileReader(
-				"shaders/frag.glsl"));
-		String fsrc = "";
-		line = "";
-		while ((line = brf.readLine()) != null) {
-			fsrc += line + "\n";
-		}
-
-		String[] fs = { fsrc };
-		gl.glShaderSource(f, 1, fs, null);
-		gl.glCompileShader(f);
-
-		int shaderprogram = gl.glCreateProgram();
-		gl.glAttachShader(shaderprogram, v);
-		gl.glAttachShader(shaderprogram, f);
-		gl.glLinkProgram(shaderprogram);
-		gl.glValidateProgram(shaderprogram);
-
-		this.shaderprogram = shaderprogram;
-	}
 
 	public void determShaderVersion(GLAutoDrawable drawable) {
 		/**
@@ -502,95 +419,12 @@ public class ObjViewer extends JFrame implements GLEventListener {
 		// End of print
 	}
 
-	public boolean initShader(GLAutoDrawable drawable) {
-		System.out.println("Initializing shaders");
-
-		IntBuffer success = BufferUtil.newIntBuffer(1);
-		IntBuffer success_ = BufferUtil.newIntBuffer(1);
-
-		boolean initialized = true;
-		GL gl = drawable.getGL();
-
-		shaderprogram = gl.glCreateProgram();
-
-		// String[] vsrc = loadFile("shaders/vsrc.glsl") ;
-		// String[] fsrc = loadFile("shaders/fsrc.glsl") ;
-
-		String[] vsrc = loadFile("shaders/dispersion_vertex.glsl");
-		String[] fsrc = loadFile("shaders/dispersion_fragment.glsl");
-
-		/**
-		 * String[] gsrc = { loadFile("src/simpleGeometryshader.glsl") }; int
-		 * geometryShader = gl.glCreateShader(GL.GL_GEOMETRY_SHADER_EXT);
-		 * gl.glShaderSource(geometryShader, 1, gsrc, null);
-		 * gl.glCompileShader(geometryShader);
-		 * 
-		 * 
-		 * gl.glProgramParameteriEXT(shaderprogram,
-		 * GL.GL_GEOMETRY_INPUT_TYPE_EXT, GL.GL_TRIANGLES);
-		 * gl.glProgramParameteriEXT(shaderprogram,
-		 * GL.GL_GEOMETRY_OUTPUT_TYPE_EXT, GL.GL_TRIANGLE_STRIP);
-		 * gl.glProgramParameteriEXT(shaderprogram,
-		 * GL.GL_GEOMETRY_VERTICES_OUT_EXT, 30);
-		 **/
-
-		int vertexShader = gl.glCreateShader(GL.GL_VERTEX_SHADER);
-		int fragmentShader = gl.glCreateShader(GL.GL_FRAGMENT_SHADER);
-
-		gl.glShaderSource(vertexShader, 1, vsrc, null);
-		gl.glShaderSource(fragmentShader, 1, fsrc, null);
-
-		gl.glCompileShader(fragmentShader);
-		gl.glCompileShader(vertexShader);
-
-		if (initialized) {
-			gl.glAttachShader(shaderprogram, vertexShader);
-			// gl.glAttachShader(shaderprogram, geometryShader);
-			gl.glAttachShader(shaderprogram, fragmentShader);
-
-			gl.glLinkProgram(shaderprogram);
-
-			gl.glGetObjectParameterivARB(shaderprogram,
-					GL.GL_OBJECT_COMPILE_STATUS_ARB, success_);
-
-			if (success_.get(0) == 0)
-				System.out.println("Failed to compile shader source:\n"
-						+ vsrc[0]);
-
-			gl.glValidateProgram(shaderprogram);
-
-			gl.glGetObjectParameterivARB(shaderprogram,
-					GL.GL_OBJECT_LINK_STATUS_ARB, success);
-
-			if (success.get(0) == 0)
-				System.out.println("Failed to link shaders");
-
-		}
-		return initialized;
-
-	}
-
-	public String[] loadFile(String fileName) {
-		BufferedReader br;
-		String[] shaderSrc = null;
-		String line;
-
-		try {
-			shaderSrc = (new String(StreamUtil.readAll(new FileInputStream(
-					fileName)))).split("\n");
-		} catch (Exception ex) {
-			System.err.println(ex);
-		}
-
-		return shaderSrc;
-	}
-
-	// ######################## END SHADER STUFF
-	// ###############################################
-
 	/*
 	 * ##################### Picking related methods
 	 * #######################################
+	 */
+	/**
+	 * Reads the color of the pixel underneath pickPoint. Is used for color-picking
 	 */
 	public void processPick(Point pickPoint) {
 
@@ -621,6 +455,7 @@ public class ObjViewer extends JFrame implements GLEventListener {
 		if (modelId == 5000268)
 			modelId = -1;
 
+		//modelId is == ID of the picked Model. 
 		sceneGraph.setUpPickedModel(modelId);
 
 		canvas.display();
@@ -654,21 +489,15 @@ public class ObjViewer extends JFrame implements GLEventListener {
 			ThisRot.get(matrix);
 		}
 
-		// festgelegten Buffer, indem sie mit einen Leerwert gefüllt werden
+		
 		gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
-		gl.glMatrixMode(GL.GL_MODELVIEW); // Legt fest, welche Matrix gerade
-		// aktiv ist
-		gl.glLoadIdentity(); // Die Funktion glLoadIdentity ersetzt die aktuelle
-		// Matrix durch die Identitätsmatrix -
-		// Multiplikation einer Matrix A mit einer
-		// Einheitsmatrix ergibt wieder die Matrix A
+		gl.glMatrixMode(GL.GL_MODELVIEW);
+		
+		gl.glLoadIdentity(); 
 
 		gl.glColorMaterial(GL.GL_FRONT_AND_BACK, GL.GL_AMBIENT);
-		// gl.glColor3f(0, 0, 1);
-
-		// Mouse Interaction
-		// glu.gluLookAt(0, 0, 3, 0, 0, 0, 0, 1, 0);
-
+		
+		//the shadingData Object holds information about the kind of shading to be applied (Flat|Gouroud)
 		if (shadingData.isShadingEnabled()) {
 			gl.glShadeModel(shadingData.getShadingmode());
 		}
@@ -677,13 +506,6 @@ public class ObjViewer extends JFrame implements GLEventListener {
 		 * arcball stuff
 		 */
 
-		gl.glPushMatrix(); // NEW: Prepare Dynamic Transform
-		//gl.glMultMatrixf(matrix, 0); // NEW: Apply Dynamic Transform
-		gl.glLoadIdentity();
-		plain.draw(gl);
-
-		gl.glPopMatrix(); // NEW: Unapply Dynamic Transform
-		gl.glLoadIdentity(); // Reset The Current Modelview Matrix
 
 		gl.glPushMatrix(); // NEW: Prepare Dynamic Transform
 		gl.glMultMatrixf(matrix, 0); // NEW: Apply Dynamic Transform
@@ -692,19 +514,13 @@ public class ObjViewer extends JFrame implements GLEventListener {
 
 		plain.drawAxes(gl);
 		sceneGraph.draw(gl, this.PICKED);
-		if(PANNING){
-			this.MouseToWorld(this.panPt.x, this.panPt.y);
-			//gl.glTranslatef(3, 3, 0);
-			//this.startPan(panPt);
-		}
-
+	
 		if (sceneGraph.wireframeMode) {
 			
 			gl.glLineWidth(3);			
 			gl.glDisable(GL.GL_LIGHTING);			
 			gl.glColor3f(1, 0, 0);
-			gl.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_LINE); // WireFrame
-				//gl.glScalef(scaling+(scaling*0.01f), scaling+(scaling*0.01f), scaling+(scaling*0.01f));
+			gl.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_LINE); // WireFrame				
 				sceneGraph.draw(gl, this.PICKED);			
 			gl.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL);
 			gl.glEnable(GL.GL_LIGHTING);
@@ -712,22 +528,10 @@ public class ObjViewer extends JFrame implements GLEventListener {
 
 		gl.glPopMatrix(); // NEW: Unapply Dynamic Transform
 
-		/*
-		 * gl.glPushMatrix(); gl.glLoadIdentity();
-		 * 
-		 * gl.glDisable(GL.GL_LIGHTING); plain.drawAxes(gl);
-		 * gl.glEnable(GL.GL_LIGHTING);
-		 * 
-		 * gl.glPopMatrix();
-		 * 
-		 * //Bottom-Plain gl.glPushMatrix(); gl.glLoadIdentity();
-		 * gl.glDisable(GL.GL_LIGHTING); plain.draw(gl);
-		 * gl.glEnable(GL.GL_LIGHTING); gl.glTranslatef(-1.5f, 0.0f, 0.5f);
-		 * gl.glRotatef(90, 1, 0, 0); gl.glPopMatrix(); //plain.drawAxes(gl);
-		 */
-
+		//Models were drawn in solid colors for color-picking
 		if (this.PICKED) {
 			this.PICKED = false;
+			//Determine (by color) which model was picked 
 			processPick(getLastPickPoint());
 			System.out.println("Point picked: " + getLastPickPoint().x + " "
 					+ getLastPickPoint().y);
@@ -739,14 +543,18 @@ public class ObjViewer extends JFrame implements GLEventListener {
 	public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
 		GL gl = drawable.getGL();
 
-		height = (height == 0) ? 1 : height;
-        gl.glViewport(0, 0, width, height);
+		int size = width < height ? width : height;
+		int xbeg = width < height ? 0 : (width - height) / 2;
+		int ybeg = width < height ? (height - width) / 2 : 0;
+
+		gl.glViewport(xbeg, ybeg, size, size);
         
 		
 		gl.glMatrixMode(GL.GL_PROJECTION);
 		gl.glLoadIdentity();
 		gl.glOrtho(-2, 2, -2, 2, -10, 10);
 
+		//set new bounds for Arcball
 		arcBall.setBounds((float) width, (float) height);
 
 	}
@@ -755,20 +563,16 @@ public class ObjViewer extends JFrame implements GLEventListener {
 
 	}
 
+	/**
+	 * MAps Mouse coordinates to world coordinates. Is not yet used in program, but works.
+	 * @param Mouse_X
+	 * @param Mouse_Y
+	 * @return World coordinates as double[]
+	 */
 	public double[] MouseToWorld(int Mouse_X, int Mouse_Y)
 	{
-			/*GLContext context = canvas.getContext();
-			context.makeCurrent();
-			GL gl = context.getGL();
-			*/
-		
-			this.PANNING = false;
-			
 			GLU glu = new GLU();
 			
-			/*IntBuffer viewport = BufferUtil.newIntBuffer(4);
-			DoubleBuffer ModelviewMatrix = BufferUtil.newDoubleBuffer(16);
-			DoubleBuffer ProjectionMatrix = BufferUtil.newDoubleBuffer(16);*/
 			
 			int viewport[] = new int[4];
 		    double ModelviewMatrix[] = new double[16];
@@ -777,13 +581,13 @@ public class ObjViewer extends JFrame implements GLEventListener {
 			
 			int OGL_Y;
 			
-			// Matrizen auslesen
+			// Read matrices
 			gl.glGetIntegerv(GL.GL_VIEWPORT, viewport,0);
 			gl.glGetDoublev(GL.GL_MODELVIEW_MATRIX, ModelviewMatrix,0);
 			gl.glGetDoublev(GL.GL_PROJECTION_MATRIX, ProjectionMatrix,0);
 			
 			
-			// Richtungsumkehr der y-Achse
+			// turn y-axis
 			OGL_Y = viewport[3] - Mouse_Y - 1;
 			FloatBuffer tiefe = BufferUtil.newFloatBuffer(4);;
 			tiefe.put(0.0f);
@@ -799,10 +603,6 @@ public class ObjViewer extends JFrame implements GLEventListener {
 		    System.out.println("World coords at z=0.0 are ( " //
 		                             + wcoord[0] + ", " + wcoord[1] + ", " + wcoord[2]
 		                             + ")");
-		          
-//			if (tiefe.get(0) > 0.90999){
-//				return false; // nicht auf Objekt geklickt
-//			}
 			
 			return wcoord;
 			
@@ -815,6 +615,10 @@ public class ObjViewer extends JFrame implements GLEventListener {
 
 	}
 
+	/**
+	 * Sets the last picked Point. Is set in MouseListener class by MouseClick Event.
+	 * @param lastPickPoint
+	 */
 	public void setLastPickPoint(Point lastPickPoint) {
 		this.lastPickPoint = lastPickPoint;
 	}
