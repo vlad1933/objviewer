@@ -755,7 +755,7 @@ public class Model {
 		// jeweils 3 Vertices die Normale angeben.
 		System.out.println("Computing the Normals!");
 
-		// solange wie faceList lang ist
+		// so oft wie faceList lang ist
 		for (int i = 0; i < faceList.size(); i++) {
 			Vert3 v1 = new Vert3(0, 0, 0);
 			Vert3 v2 = new Vert3(0, 0, 0);
@@ -768,10 +768,7 @@ public class Model {
 			v2 = vertexList.get(vertIndices[1]);
 			v3 = vertexList.get(vertIndices[2]);
 
-			norm = Vert3.cross((Vert3.minus(v2, v1)), (Vert3.minus(v3, v1)));
-			// norm = Vert3.cross((Vert3.multiply(v2, v3)), (Vert3.multiply(v2,
-			// v1)));
-			// norm = Vert3.normalizeVector(norm);
+			norm = Vert3.cross((Vert3.minus(v2, v1)), (Vert3.minus(v3, v1)));			
 
 			faceList.get(i).setNormIndex(i);
 
