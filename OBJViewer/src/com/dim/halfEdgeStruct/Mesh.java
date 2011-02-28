@@ -5,17 +5,24 @@ import java.util.ArrayList;
 import com.dim.objviewer.Model;
 import com.dim.objviewer.ObjViewer;
 import com.dim.objviewer.Vert3;
-
+/**
+ * Computes a mesh out of triangular faces (triangular polygons).
+ * Provides methods for getting adjacence data.
+ * @author K. Wengrzinek & D. Martens
+ *
+ */
 public class Mesh implements Runnable{
 
+	//2-dimensional array of faces taken as parameter e.g. {{1,2,3},{3,4,5},..}
 	private int[][] faceList;
-	//Edges
+	//Edges defined by the faces
 	private ArrayList<HE_edge> edgeList = new ArrayList<HE_edge>();
-	//Points
+	//List of pList elements; a pList Object consists of a point (int) and a face (HE_Face) 
 	private ArrayList<pList> PList = new ArrayList<pList>();
-	//
+	//Contains begin-points of edges.From the index of the begin point in ptrPList one can imply to a pList object in in PList
 	private ArrayList<Integer> ptrPList = new ArrayList<Integer>();
 	
+	//is set true when mesh is computed
 	private boolean dataStructureReady = false;
 		
 
@@ -37,24 +44,23 @@ public class Mesh implements Runnable{
 	
 	@Override
 	/**
-	 * Builds the Half-Edge Mesh
+	 * Builds the Half-Edge mesh
 	 */
 	public void run() {
 		// TODO Auto-generated method stub
-
-		/*
-		 * Mesh nur für 3eckige Faces definiert
-		 */
 		
-		int i,j,l  = 0;
-		i = 0;
-		j = 0;
+		//Indicates the face 
+		int l  = 0; 
+		//Indicates the point in face[l]; Can only be 0,1 or 2
+		int i = 0;
+		//Indicates the successor and predecessor of point i
+		int j = 0;
 		
 						
-		for(l = 0; l < faceList.length; l++ ){ //index des Face
+		for(l = 0; l < faceList.length; l++ ){ //index of face
 			/*
-			 * wir gehen davon aus dass die Kante a die erste b die zweite und c die 3. HK sind. 
-			 * Auf diesem prinzip beruht folgende berechnung.
+			 * Wir gehen davon aus, dass die Kante A die erste B die zweite und C die 3. HK sind. 
+			 * Auf diesem Prinzip beruht die folgende Operation.
 			 */			
 			HE_edge hk_a = new HE_edge(faceList[l][j], (HE_edge)null, (HE_edge)null, new HE_face(l));			
 			HE_edge hk_b = new HE_edge(faceList[l][(j+1)%3], (HE_edge)null, (HE_edge)null, new HE_face(l));
@@ -63,33 +69,34 @@ public class Mesh implements Runnable{
 			hk_b.setNext(hk_c);
 			hk_c.setNext(hk_a);			
 			
-			/* Zufügen zu edgeList */
+			//Add edges to edgeList
 			edgeList.add(hk_a);
 			edgeList.add(hk_b);
 			edgeList.add(hk_c);
 			
 			
-			for(i = 0; i < 3; i++){ // i ist index vom punkt
+			for(i = 0; i < 3; i++){ // i indicates a point in face[l]
 								
 				/*
-				 * Vorgänger
+				 * Predecessor
 				 */
-				j = (i + 2) % 3; //j ist vorgänger-punkt von i								
-				if(faceList[l][j] > faceList[l][i]){ 	//ist der Punkt größer als der PList-Wert(int Indize v. pList) wird er rausgeschmissen 
+				j = (i + 2) % 3; //j is predecessor point of i
+				//ist der Punkt größer als der PList-Wert(int Indize v. pList) wird er rausgeschmissen
+				//if the point at face[l][j] (pred) is bigger than the point at face[l][i] it is not considered
+				if(faceList[l][j] > faceList[l][i]){ 	 
 					pList pl = new pList(faceList[l][j], new HE_face(l));
-					//auf vorhandene gegenkante prüfen
+					//look for pair-edge
 					if(!plCompare(pl,faceList[l][i]))
 					{
 						//System.out.println("pl: " + pl);
-						PList.add(pl);	//speichern des pList Objekts in einer Liste				
-						ptrPList.add(faceList[l][i]);	//speichern des Indizes - quasi Startpunkt
-																		
+						PList.add(pl);	//save the pList Object				
+						ptrPList.add(faceList[l][i]);	//Save the starting point																		
 					}
 					else{
 						/*
 						 * Da hier eine innere Kante gefunden wurde, ist dies eine Gegenkante einer in der
-						 * edgeList bereits vorhandenen kannte mit parameter pair_edge == null
-						 * In der for Schleife sucht man die Gegenkante die den Endpunkt v. pl (faceList[l][j]) hat
+						 * edgeList bereits vorhandenen Kante mit Parameter pair_edge == null
+						 * In der for-Schleife sucht man die Gegenkante die den Endpunkt v. pl (faceList[l][j]) hat
 						 */						
 						HE_edge pair_edge = null;
 						for(int z = edgeList.size()-1; z > (edgeList.size()-4); z--){
@@ -106,24 +113,20 @@ public class Mesh implements Runnable{
 				
 				
 				/*
-				 * Nachfolger
+				 * Successor
 				 */
-				j = (i + 4) % 3; //j ist nachfolger-punkt von i								
+				j = (i + 4) % 3; //j is the successor point of i in face l (Remember: a face consists of 3 points)								
 				if(faceList[l][j] > faceList[l][i]){
 					pList pl_ = new pList(faceList[l][j], new HE_face(l));
 					if(!plCompare(pl_,faceList[l][i]))
 					{
 						//System.out.println("pl: " + pl_);
-						PList.add(pl_);	//speichern des pList Objekts in einer Liste				
-						ptrPList.add(faceList[l][i]);	//speichern des Indizes
+						PList.add(pl_);	//save the pList Object					
+						ptrPList.add(faceList[l][i]);	//Save the starting point
 						
 					}
 					else{
-						/*
-						 * Da hier eine innere Kante gefunden wurde, ist dies eine Gegenkante einer in der
-						 * edgeList bereits vorhandenen kannte mit parameter nextedge = null
-						 */
-						
+												
 						HE_edge pair_edge = null;
 						for(int z = edgeList.size()-1; z > (edgeList.size()-4); z--){
 							if(edgeList.get(z).getVert() == faceList[l][j])
@@ -267,7 +270,7 @@ public class Mesh implements Runnable{
 			iteratingEdge = iteratingEdge.getNext().getPair();			
 		}
 		
-		//indeces of points that are adjacent
+		//Indices of points that are adjacent
 		int[] points = new int[adjEdges.size()];
 		int i = 0;
 		for(HE_edge e : adjEdges){
